@@ -30,6 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  image_picker: ^1.0.7  # For profile image change
+  provider: ^6.1.2  # For MVVM state management
+  firebase_core: ^3.4.0  # Firebase setup
+  firebase_auth: ^5.3.0  # Authentication
+  firebase_storage: ^12.3.0  # Image storage
+  cloud_firestore: ^5.4.0  # Profile data storage
+  firebase_database: ^11.1.4  # If needed for real-time updates
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -56,6 +63,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/profile_banner.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

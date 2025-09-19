@@ -113,6 +113,19 @@ class _ProfileViewState extends State<ProfileView> {
       if (field == 'departmentId') _departmentIdController.text = value;
       if (field == 'email') _emailController.text = value;
       if (field == 'phone') _phoneController.text = value;
+      // Set cursor to the end to avoid selection
+      final controller = {
+        'name': _nameController,
+        'employeeId': _employeeIdController,
+        'departmentId': _departmentIdController,
+        'email': _emailController,
+        'phone': _phoneController,
+      }[field];
+      if (controller != null) {
+        controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: controller.text.length),
+        );
+      }
     });
   }
 
@@ -241,7 +254,7 @@ class _ProfileViewState extends State<ProfileView> {
             keyboardType: TextInputType.emailAddress,
           ),
           _buildField(
-            label: 'Phone',
+            label: 'Phone Number',
             controller: _phoneController,
             focusNode: _phoneFocus,
             onChanged: (value) => _updateField('phone', value),
@@ -327,6 +340,18 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             keyboardType: keyboardType,
             onChanged: onChanged,
+            // Disable select all on focus
+            selectionControls: MaterialTextSelectionControls(),
+            // Ensure cursor appears normally
+            enableInteractiveSelection: true,
+            onTap: () {
+              // Move cursor to tap position or end if no selection
+              if (controller.selection.isCollapsed) {
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: controller.selection.baseOffset),
+                );
+              }
+            },
           ),
         ],
       ),

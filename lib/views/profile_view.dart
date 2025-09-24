@@ -36,19 +36,19 @@ class _ProfileViewState extends State<ProfileView> {
   void initState() {
     super.initState();
     _profile = ProfileModel(
-      name: 'Jane Doe',
-      employeeId: 'EMP-007',
-      departmentId: 'DEPT-001',
-      email: 'jane.doe@example.com',
-      phone: '+1 (555) 123-4567',
+      name: '',
+      employeeId: '',
+      departmentId: '',
+      email: '',
+      phone: '',
       imageUrl: null,
     );
-    // Initialize controllers with initial values
-    _nameController.text = _profile.name ?? '';
-    _employeeIdController.text = _profile.employeeId ?? '';
-    _departmentIdController.text = _profile.departmentId ?? '';
-    _emailController.text = _profile.email ?? '';
-    _phoneController.text = _profile.phone ?? '';
+    // Initialize controllers with empty values (hint text will guide)
+    _nameController.text = '';
+    _employeeIdController.text = '';
+    _departmentIdController.text = '';
+    _emailController.text = '';
+    _phoneController.text = '';
   }
 
   @override
@@ -233,18 +233,21 @@ class _ProfileViewState extends State<ProfileView> {
             controller: _nameController,
             focusNode: _nameFocus,
             onChanged: (value) => _updateField('name', value),
+            hintText: 'eg. Jane Doe',
           ),
           _buildField(
             label: 'Employee ID',
             controller: _employeeIdController,
             focusNode: _employeeIdFocus,
             onChanged: (value) => _updateField('employeeId', value),
+            hintText: 'eg. EMP-007',
           ),
           _buildField(
             label: 'Department',
             controller: _departmentIdController,
             focusNode: _departmentIdFocus,
             onChanged: (value) => _updateField('departmentId', value),
+            hintText: 'eg. Human Resources',
           ),
           _buildField(
             label: 'Email Address',
@@ -252,6 +255,7 @@ class _ProfileViewState extends State<ProfileView> {
             focusNode: _emailFocus,
             onChanged: (value) => _updateField('email', value),
             keyboardType: TextInputType.emailAddress,
+            hintText: 'eg. jane.doe@example.com',
           ),
           _buildField(
             label: 'Phone Number',
@@ -259,7 +263,8 @@ class _ProfileViewState extends State<ProfileView> {
             focusNode: _phoneFocus,
             onChanged: (value) => _updateField('phone', value),
             keyboardType: TextInputType.phone,
-            hasCheckIcon: true,
+            hintText: 'eg. +27 123 456 789',
+            hasCheckIcon: false,
           ),
           const SizedBox(height: 24.0),
           ElevatedButton(
@@ -316,6 +321,7 @@ class _ProfileViewState extends State<ProfileView> {
     required Function(String) onChanged,
     TextInputType? keyboardType,
     bool hasCheckIcon = false,
+    String? hintText,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -337,15 +343,17 @@ class _ProfileViewState extends State<ProfileView> {
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               suffixIcon: hasCheckIcon ? Icon(Icons.check, color: Colors.grey[400]) : null,
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: Colors.grey[400],
+                fontStyle: FontStyle.italic,
+              ),
             ),
             keyboardType: keyboardType,
             onChanged: onChanged,
-            // Disable select all on focus
             selectionControls: MaterialTextSelectionControls(),
-            // Ensure cursor appears normally
             enableInteractiveSelection: true,
             onTap: () {
-              // Move cursor to tap position or end if no selection
               if (controller.selection.isCollapsed) {
                 controller.selection = TextSelection.fromPosition(
                   TextPosition(offset: controller.selection.baseOffset),

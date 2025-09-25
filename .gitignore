@@ -123,3 +123,4 @@ macos/Podfile
 ios/Flutter/Debug.xcconfig
 ios/Flutter/Release.xcconfig
 ios/Flutter/Release.xcconfig
+ios/Flutter/Release.xcconfig

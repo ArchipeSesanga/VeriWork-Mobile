@@ -118,3 +118,12 @@ app.*.symbols
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
 .DS_Store
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Release.xcconfig
+ios/Podfile
+macos/Podfile
+macos/Flutter/Flutter-Release.xcconfig
+macos/Flutter/Flutter-Debug.xcconfig
+*.xcconfig

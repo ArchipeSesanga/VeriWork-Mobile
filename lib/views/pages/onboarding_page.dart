@@ -51,7 +51,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _navigateToMainPage() {
     // TODO: Replace with actual navigation
-    print('Navigate to main page');
+    const Text('Navigate to main page');
   }
 
   @override
@@ -128,10 +128,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         height: 8,
                         width: currentIndex == index ? 24 : 8,
                         decoration: BoxDecoration(
-                          color:
-                              currentIndex == index
-                                  ? Colors.blue
-                                  : Colors.grey[300],
+                          color: currentIndex == index
+                              ? Colors.blue
+                              : Colors.grey[300],
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -171,30 +170,30 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       // Next/Get Started button
                       isLastPage
                           ? MyButton(
-                            title: 'Get Started',
-                            onTap: () {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const WelcomeScreen(),
-                                ),
-                              );
-                            },
-                            color: Colors.blue,
-                          )
+                              title: 'Get Started',
+                              onTap: () {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) => const WelcomeScreen(),
+                                  ),
+                                );
+                              },
+                              color: Colors.blue,
+                            )
                           : GestureDetector(
-                            onTap: _nextPage,
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
+                              onTap: _nextPage,
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: const BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
                     ],
                   ),
                 ),

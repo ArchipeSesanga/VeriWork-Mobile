@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/loginScreen.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 
 void main() {
@@ -16,8 +16,8 @@ class MyApp extends StatelessWidget {
       title: 'Onboarding Demo',
       initialRoute: '/',
       routes: {
-        '/': (context) => OnboardingPage(),
-        '/login': (context) => LoginScreen(),
+        '/': (context) => const OnboardingPage(),
+        '/login': (context) => const LoginScreen(),
         // '/profile': (context) => ProfileScreen(),
         // '/settings': (context) => SettingsScreen(),
       },

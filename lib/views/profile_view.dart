@@ -1,10 +1,10 @@
-import 'dart:html' as html;
-import 'dart:io';
+import 'dart:io' show File;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/profile_model.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../utils/image_picker_web.dart' if (dart.library.io) '../utils/image_picker_mobile.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -69,19 +69,12 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _pickImage() async {
     if (kIsWeb) {
-      final html.FileUploadInputElement input = html.FileUploadInputElement()..accept = 'image/*';
-      input.click();
-      await input.onChange.first;
-      final files = input.files;
-      if (files != null && files.isNotEmpty) {
-        final file = files.first;
-        final reader = html.FileReader();
-        reader.readAsArrayBuffer(file);
-        await reader.onLoad.first;
-        final arrayBuffer = reader.result as Uint8List;
-        setState(() {
-          _webImageBytes = arrayBuffer;
-        });
+      // Web image picker using <input type="file">
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() => _webImageBytes = bytes);
       }
     } else {
       try {

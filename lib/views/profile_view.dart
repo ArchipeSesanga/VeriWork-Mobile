@@ -69,7 +69,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _pickImage() async {
     if (kIsWeb) {
-      // Web image picker using <input type="file">
+      // Web image picker using ImagePicker
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
@@ -139,11 +139,36 @@ class _ProfileViewState extends State<ProfileView> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[700],
+        title: Center(
+          child: Image.asset(
+            'assets/app_logo.png', // Replace with your logo file name
+            height: 40, // Adjust height as needed
+            fit: BoxFit.contain,
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-            tooltip: 'Logout',
+          Row(
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 20, // Smaller radius for app bar
+                  backgroundImage: kIsWeb
+                      ? (_webImageBytes != null
+                          ? MemoryImage(_webImageBytes!)
+                          : const AssetImage('assets/profile_banner.png'))
+                      : (_mobileImagePath != null
+                          ? FileImage(File(_mobileImagePath!))
+                          : const AssetImage('assets/profile_banner.png')),
+                  onBackgroundImageError: (_, __) => const AssetImage('assets/profile_banner.png'),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+            ],
           ),
         ],
       ),
@@ -151,7 +176,7 @@ class _ProfileViewState extends State<ProfileView> {
         padding: const EdgeInsets.all(16.0),
         children: [
           const Text(
-            'Profile Details',
+            'Profile & Settings',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),

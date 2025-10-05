@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/views/pages/loginScreen.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 
 void main() {

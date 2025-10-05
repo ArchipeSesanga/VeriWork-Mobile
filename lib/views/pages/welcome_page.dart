@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/LoginScreen.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

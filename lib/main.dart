@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import 'package:veriwork_mobile/views/pages/loginScreen.dart';
+=======
+import 'package:veriwork_mobile/views/pages/loginscreen.dart';
+>>>>>>> Stashed changes
 =======
 import 'package:veriwork_mobile/views/pages/loginscreen.dart';
 >>>>>>> Stashed changes

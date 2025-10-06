@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
+=======
+import 'package:veriwork_mobile/views/pages/loginScreen.dart';
+>>>>>>> d50ed5b336b8e24d734c8f851a63cfdf9ff200ac
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 =======
 import 'views/profile_view.dart';

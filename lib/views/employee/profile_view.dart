@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 // Fixed conditional import (use relative paths from lib/views/employee/ to lib/utils/)
+// ignore: unused_import
 import '../../utils/image_picker_web.dart' if (dart.library.html) '../../utils/image_picker_web.dart' if (dart.library.io) '../../utils/image_picker_mobile.dart';
 
 import '../../models/profile_model.dart';
@@ -14,7 +15,7 @@ class ProfileView extends StatefulWidget {
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
-}
+} 
 
 class _ProfileViewState extends State<ProfileView> {
   late ProfileModel _profile;

@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Onboarding Demo',
-      initialRoute: '/profile',  // Launch directly to ProfileView
+      initialRoute: '/profile & Settings',  // Launch directly to ProfileView
       routes: {
         '/': (context) => const OnboardingPage(),
         '/login': (context) => const LoginScreen(),

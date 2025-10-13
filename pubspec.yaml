@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.6
   lottie: ^3.3.2
   image_picker: ^1.0.7  # For profile image change
+  provider: ^6.1.5+1
+  cloud_firestore: ^6.0.2
+  firebase_core: ^4.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:veriwork_mobile/views/employee/profile_view.dart';
+import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -10,18 +12,25 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
-  // Example navigation handler
   void _onItemTapped(int index) {
+    if (index == _selectedIndex) return; // Already selected
+
     setState(() {
       _selectedIndex = index;
     });
 
     if (index == 0) {
-      // Stay on Dashboard
-      Navigator.pushReplacementNamed(context, '/home');
+      // Home: Stay on Dashboard
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
     } else if (index == 1) {
-      // Navigate to Profile Page (make sure route exists)
-      Navigator.pushReplacementNamed(context, '/profile');
+      // Profile: Navigate to ProfileView
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileView()),
+      );
     }
   }
 
@@ -70,7 +79,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Column(
                   children: [
-                    // Profile Picture
                     Container(
                       width: 100,
                       height: 100,
@@ -103,7 +111,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Status Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
@@ -124,82 +131,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
-              // Employee Details Section
+              // Employee Details
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Text(
-                      'JOB TITLE',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    Text('JOB TITLE',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                            letterSpacing: 0.5)),
                     SizedBox(height: 4),
-                    Text(
-                      'Senior Software Engineer',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text('Senior Software Engineer',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500)),
                     SizedBox(height: 16),
-                    Text(
-                      'DEPARTMENT',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    Text('DEPARTMENT',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                            letterSpacing: 0.5)),
                     SizedBox(height: 4),
-                    Text(
-                      'Engineering',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text('Engineering',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500)),
                     SizedBox(height: 16),
-                    Text(
-                      'EMAIL ADDRESS',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    Text('EMAIL ADDRESS',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                            letterSpacing: 0.5)),
                     SizedBox(height: 4),
-                    Text(
-                      'jane.doe@company.com',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    Text('jane.doe@company.com',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500)),
                     SizedBox(height: 16),
                     Row(
                       children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: Colors.green,
-                          size: 20,
-                        ),
+                        Icon(Icons.check_circle, color: Colors.green, size: 20),
                         SizedBox(width: 8),
-                        Text(
-                          'Verified',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.green,
-                          ),
-                        ),
+                        Text('Verified',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.green)),
                       ],
                     ),
                   ],
@@ -222,14 +201,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Edit Profile',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: const Text('Edit Profile',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white)),
                   ),
                 ),
               ),
@@ -242,57 +218,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Verification Status',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Text('Verification Status',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Current Status:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    const Text('Current Status:',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.orangeAccent.withOpacity(0.2),
-                        border: Border.all(
-                          color: Colors.orange,
-                          width: 1,
-                        ),
+                        border: Border.all(color: Colors.orange, width: 1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text(
-                        'Pending Review',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: const Text('Pending Review',
+                          style: TextStyle(
+                              color: Colors.orange,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600)),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Please capture a selfie for verification.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
+                    const Text('Please capture a selfie for verification.',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/selfie');
+                          // Navigate to Selfie Verification Page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SelfiePage()),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1976D2),
@@ -300,14 +262,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          'Capture Verification Selfie',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: const Text('Capture Verification Selfie',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white)),
                       ),
                     ),
                   ],
@@ -320,7 +279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
 
-      // Bottom Navigation
+      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

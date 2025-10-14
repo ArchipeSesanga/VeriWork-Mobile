@@ -50,8 +50,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void _navigateToMainPage() {
-    // TODO: Replace with actual navigation
-    const Text('Navigate to main page');
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
   }
 
   @override
@@ -65,32 +66,31 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // PNG Background
+          // Background image
           Positioned.fill(
             child: Image.asset(
-              "assets/images/background.png", // <-- use your PNG
+              "assets/images/background.png",
               fit: BoxFit.cover,
             ),
           ),
 
-          // Skip button (top-right)
+          // Skip button
           if (!isLastPage)
             Positioned(
-              top: 40, // adjust for status bar
+              top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
                 onPressed: _skipToEnd,
                 child: const Text(
                   'Skip',
                   style: TextStyle(
-                    color: Colors.white, // White so it's visible on bg
+                    color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ),
 
-          // Main content
           SafeArea(
             child: Column(
               children: [
@@ -106,10 +106,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     itemCount: onboardingData.length,
                     itemBuilder: (context, index) {
                       final item = onboardingData[index];
-                      return OnboardingItem(
-                        title: item["title"]!,
-                        description: item["description"]!,
-                        lottieAsset: item["lottie"]!,
+                      return SingleChildScrollView(
+                        child: OnboardingItem(
+                          title: item["title"]!,
+                          description: item["description"]!,
+                          lottieAsset: item["lottie"]!,
+                        ),
                       );
                     },
                   ),
@@ -138,13 +140,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 ),
 
-                // Bottom navigation
+                // Bottom navigation buttons
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Back button (visible after first page)
+                      // Back button
                       if (currentIndex > 0)
                         GestureDetector(
                           onTap: () {
@@ -166,19 +169,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           ),
                         )
                       else
-                        const SizedBox(width: 48), // Spacer
+                        const SizedBox(width: 48),
+
                       // Next/Get Started button
                       isLastPage
-                          ? MyButton(
-                              title: 'Get Started',
-                              onTap: () {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                    builder: (context) => const WelcomeScreen(),
-                                  ),
-                                );
-                              },
-                              color: Colors.blue,
+                          ? Expanded(
+                              child: MyButton(
+                                title: 'Get Started',
+                                onTap: _navigateToMainPage,
+                                color: Colors.blue,
+                              ),
                             )
                           : GestureDetector(
                               onTap: _nextPage,

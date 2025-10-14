@@ -3,10 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:veriwork_mobile/views/employee/dashboard_view.dart';
 
 // Fixed conditional import (use relative paths from lib/views/employee/ to lib/utils/)
 // ignore: unused_import
-import '../../utils/image_picker_web.dart' if (dart.library.html) '../../utils/image_picker_web.dart' if (dart.library.io) '../../utils/image_picker_mobile.dart';
+import '../../utils/image_picker_web.dart'
+    if (dart.library.html) '../../utils/image_picker_web.dart'
+    if (dart.library.io) '../../utils/image_picker_mobile.dart';
 
 import '../../models/profile_model.dart';
 
@@ -133,8 +136,10 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void _navigateHome() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Navigating to Home')));
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+    );
   }
 
   void _navigateProfile() {

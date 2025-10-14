@@ -15,7 +15,7 @@ class ProfileView extends StatefulWidget {
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
-} 
+}
 
 class _ProfileViewState extends State<ProfileView> {
   late ProfileModel _profile;
@@ -157,6 +157,11 @@ class _ProfileViewState extends State<ProfileView> {
         actions: [
           Row(
             children: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
               GestureDetector(
                 onTap: _pickImage,
                 child: CircleAvatar(
@@ -172,11 +177,6 @@ class _ProfileViewState extends State<ProfileView> {
                               as ImageProvider<Object>),
                   onBackgroundImageError: (_, __) {},
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
-                tooltip: 'Logout',
               ),
             ],
           ),

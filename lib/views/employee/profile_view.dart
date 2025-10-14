@@ -149,7 +149,7 @@ class _ProfileViewState extends State<ProfileView> {
         backgroundColor: Colors.blue[700],
         title: Center(
           child: Image.asset(
-            'assets/app_logo.png', // Replace with your logo file name
+            'assets/images/Logo.png', // Replace with your logo file name
             height: 40, // Adjust height as needed
             fit: BoxFit.contain,
           ),

@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
 
-        // Typography
+        // Typography ok
         textTheme: const TextTheme(
           headlineLarge: TextStyle(
             fontSize: 32,

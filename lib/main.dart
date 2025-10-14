@@ -15,13 +15,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Onboarding Demo',
-      initialRoute: '/profile & Settings',  // Launch directly to ProfileView
+      initialRoute: '/profile & Settings', // Launch directly to ProfileView
       routes: {
         '/': (context) => const OnboardingPage(),
         '/login': (context) => const LoginScreen(),
-        // '/Dashboard': (context) => DashboardView(),
+        '/Dashboard': (context) => DashboardView(),
         '/profile & Settings': (context) => const ProfileView(),
-        
       },
       theme: ThemeData(primarySwatch: Colors.blue),
       // Removed 'home' to avoid conflict with initialRoute

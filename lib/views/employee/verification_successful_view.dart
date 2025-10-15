@@ -133,7 +133,7 @@ class _VerificationSuccessfulViewState extends State<VerificationSuccessfulView>
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Color.fromARGB(221, 97, 251, 92),
               ),
             ),
             const SizedBox(height: 16.0),

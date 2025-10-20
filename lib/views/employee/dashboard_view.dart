@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -110,12 +110,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             // Employee Details Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'JOB TITLE',
                     style: TextStyle(
                       fontSize: 12,
@@ -124,16 +124,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Senior Software Engineer',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'DEPARTMENT',
                     style: TextStyle(
                       fontSize: 12,
@@ -142,16 +142,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Engineering',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'EMAIL ADDRESS',
                     style: TextStyle(
                       fontSize: 12,
@@ -160,25 +160,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'jane.doe@company.com',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   // Verified Badge
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.check_circle,
                         color: Colors.green,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
+                      SizedBox(width: 8),
+                      Text(
                         'Verified',
                         style: TextStyle(
                           fontSize: 14,

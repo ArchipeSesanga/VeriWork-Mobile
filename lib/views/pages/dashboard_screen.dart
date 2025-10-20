@@ -1,9 +1,13 @@
+import 'dart:io' show File;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -11,22 +15,40 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+  Uint8List? _webImageBytes;
+  String? _mobileImagePath;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      if (kIsWeb) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() => _webImageBytes = bytes);
+      } else {
+        setState(() => _mobileImagePath = pickedFile.path);
+      }
+    }
+  }
+
+  void _logout() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged out')),
+    );
+  }
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return; // Already selected
+    if (index == _selectedIndex) return;
 
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
 
     if (index == 0) {
-      // Home: Stay on Dashboard
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
       );
     } else if (index == 1) {
-      // Profile: Navigate to ProfileView
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ProfileView()),
@@ -37,43 +59,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue[700],
+        title: Center(
+          child: Image.asset(
+            'assets/images/Logo.png',
+            height: 40,
+            fit: BoxFit.contain,
+          ),
+        ),
+        actions: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: kIsWeb
+                      ? (_webImageBytes != null
+                          ? MemoryImage(_webImageBytes!)
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>)
+                      : (_mobileImagePath != null
+                          ? FileImage(File(_mobileImagePath!))
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>),
+                  onBackgroundImageError: (_, __) {},
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+          ),
+        ],
+      ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Header
-              Container(
-                color: const Color(0xFF5B7CB1),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'W',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.notifications_outlined,
-                              color: Colors.white),
-                          onPressed: () {},
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.account_circle,
-                              color: Colors.white),
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
               // Profile Section
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
@@ -132,11 +160,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
 
               // Employee Details
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('JOB TITLE',
                         style: TextStyle(
                             fontSize: 12,
@@ -230,7 +258,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withOpacity(0.2),
+                        color: Colors.orangeAccent.withValues(alpha: 0.3),
                         border: Border.all(color: Colors.orange, width: 1),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -249,7 +277,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: 48,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Navigate to Selfie Verification Page
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -264,7 +291,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         child: const Text('Capture Verification Selfie',
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white)),
                       ),

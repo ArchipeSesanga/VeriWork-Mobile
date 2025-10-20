@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -15,436 +16,261 @@ class _SelfiePageState extends State<SelfiePage> {
   bool _isCapturing = false;
   final ImagePicker _picker = ImagePicker();
 
-  // Pick image from camera with error handling
+  Uint8List? _webImageBytes;
+  String? _mobileImagePath;
+
+  Future<void> _logout() async {
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   Future<void> _pickImage() async {
     if (_isCapturing) return;
-
-    setState(() {
-      _isCapturing = true;
-    });
+    setState(() => _isCapturing = true);
 
     try {
       final pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85, // Compress image to reduce file size
+        preferredCameraDevice: CameraDevice.front,
+        imageQuality: 85,
         maxWidth: 1024,
         maxHeight: 1024,
-        preferredCameraDevice:
-            CameraDevice.front, // Use front camera for selfie
       );
 
       if (pickedFile != null && mounted) {
-        setState(() {
-          _image = File(pickedFile.path);
-        });
+        if (kIsWeb) {
+          final bytes = await pickedFile.readAsBytes();
+          setState(() {
+            _webImageBytes = bytes;
+          });
+        } else {
+          setState(() {
+            _mobileImagePath = pickedFile.path;
+            _image = File(pickedFile.path);
+          });
+        }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        _showErrorSnackBar("Failed to capture selfie. Please try again.");
+        _showSnackBar("Failed to capture selfie. Please try again.", false);
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isCapturing = false;
-        });
-      }
+      if (mounted) setState(() => _isCapturing = false);
     }
   }
 
-  // Retake selfie
-  void _retakeSelfie() {
-    setState(() {
-      _image = null;
-    });
-    _pickImage();
-  }
-
-  // Submit selfie for verification
   Future<void> _submitSelfie() async {
-    if (_image == null) {
-      _showErrorSnackBar("Please capture a selfie first");
+    if (_image == null && _webImageBytes == null) {
+      _showSnackBar("Please capture a selfie first", false);
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // TODO: Replace with actual API call
-      // Example: await apiService.uploadSelfie(_image!);
       await Future.delayed(const Duration(seconds: 2));
-
       if (mounted) {
-        _showSuccessSnackBar("Selfie submitted successfully");
-
-        // Navigate to verification pending screen
+        _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/verification_pending');
         }
       }
-    } catch (e) {
-      if (mounted) {
-        _showErrorSnackBar("Failed to submit selfie. Please try again.");
-      }
+    } catch (_) {
+      _showSnackBar("Submission failed. Please try again.", false);
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // Show error snackbar
-  void _showErrorSnackBar(String message) {
+  void _showSnackBar(String message, bool success) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline, color: Colors.white),
+            Icon(success ? Icons.check_circle_outline : Icons.error_outline,
+                color: Colors.white),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.red.shade600,
+        backgroundColor: success ? Colors.green.shade600 : Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
-  }
-
-  // Show success snackbar
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  // Show exit confirmation dialog
-  Future<bool> _onWillPop() async {
-    if (_isLoading) return false;
-
-    final shouldPop = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Exit Verification?'),
-        content: const Text(
-          'Are you sure you want to exit? Your selfie will not be saved.',
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Exit'),
-          ),
-        ],
-      ),
-    );
-
-    return shouldPop ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: Colors.grey.shade50,
-        appBar: AppBar(
-          title: const Text(
-            "Selfie Verification",
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  // Instructions card
-                  _buildInstructionsCard(),
-
-                  const SizedBox(height: 32),
-
-                  // Selfie preview
-                  _buildSelfiePreview(),
-
-                  const SizedBox(height: 40),
-
-                  // Action buttons
-                  _buildActionButtons(),
-                ],
-              ),
-            ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.blue[700],
+        title: Center(
+          child: Image.asset(
+            'assets/images/Logo.png',
+            height: 40,
+            fit: BoxFit.contain,
           ),
         ),
-      ),
-    );
-  }
-
-  // Instructions card widget
-  Widget _buildInstructionsCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        actions: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue.shade700, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                "Verification Tips",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue.shade900,
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: kIsWeb
+                      ? (_webImageBytes != null
+                          ? MemoryImage(_webImageBytes!)
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>)
+                      : (_mobileImagePath != null
+                          ? FileImage(File(_mobileImagePath!))
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>),
+                  onBackgroundImageError: (_, __) {},
                 ),
               ),
+              const SizedBox(width: 12),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildTipItem("Ensure good lighting on your face"),
-          _buildTipItem("Look directly at the camera"),
-          _buildTipItem("Remove sunglasses or face coverings"),
-          _buildTipItem("Keep a neutral expression"),
         ],
       ),
-    );
-  }
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "Take Photo",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              "Take a clear selfie for verification",
+              style: TextStyle(fontSize: 15, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
 
-  // Tip item widget
-  Widget _buildTipItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.check_circle, color: Colors.blue.shade700, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.blue.shade900,
-                height: 1.4,
+            // Circular selfie preview
+            Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _image != null || _webImageBytes != null
+                      ? Colors.blueAccent
+                      : Colors.grey.shade300,
+                  width: 3,
+                ),
+              ),
+              child: ClipOval(
+                child: _image != null
+                    ? Image.file(_image!, fit: BoxFit.cover)
+                    : _webImageBytes != null
+                        ? Image.memory(_webImageBytes!, fit: BoxFit.cover)
+                        : Icon(Icons.person_outline,
+                            size: 100, color: Colors.grey.shade400),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  // Selfie preview widget
-  Widget _buildSelfiePreview() {
-    return Container(
-      width: 280,
-      height: 280,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.1),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
-        border: Border.all(
-          color: _image != null ? Colors.green.shade400 : Colors.grey.shade300,
-          width: 4,
+            const SizedBox(height: 40),
+
+            // Capture Selfie Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isCapturing ? null : _pickImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isCapturing
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Capture Selfie",
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w600),
+                      ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _submitSelfie,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Submit",
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w600),
+                      ),
+              ),
+            ),
+          ],
         ),
       ),
-      child: ClipOval(
-        child: _image == null
-            ? _buildPlaceholder()
-            : Stack(
-                children: [
-                  Image.file(
-                    _image!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                  if (!_isLoading)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          iconSize: 20,
-                          onPressed: () => setState(() => _image = null),
-                          padding: const EdgeInsets.all(4),
-                          constraints: const BoxConstraints(),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-      ),
-    );
-  }
-
-  // Placeholder widget when no image
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.grey.shade100,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_outline,
-            size: 100,
-            color: Colors.grey.shade400,
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          } else {
+            Navigator.pushReplacementNamed(context, '/profile');
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: "Home",
           ),
-          const SizedBox(height: 16),
-          Text(
-            "No photo taken",
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: "Profile",
           ),
         ],
       ),
     );
-  }
-
-  // Action buttons widget
-  Widget _buildActionButtons() {
-    if (_image == null) {
-      // Show capture button
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _isCapturing ? null : _pickImage,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade600,
-            foregroundColor: Colors.white,
-            disabledBackgroundColor: Colors.grey.shade400,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 2,
-          ),
-          icon: _isCapturing
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-              : const Icon(Icons.camera_alt, size: 24),
-          label: Text(
-            _isCapturing ? "Opening Camera..." : "Capture Selfie",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      );
-    } else {
-      // Show retake and submit buttons
-      return Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isLoading ? null : _submitSelfie,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey.shade400,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(Icons.check_circle, size: 24),
-              label: Text(
-                _isLoading ? "Submitting..." : "Submit Selfie",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _isLoading ? null : _retakeSelfie,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue.shade700,
-                side: BorderSide(color: Colors.blue.shade300, width: 2),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              icon: const Icon(Icons.refresh, size: 24),
-              label: const Text(
-                "Retake Photo",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
   }
 }

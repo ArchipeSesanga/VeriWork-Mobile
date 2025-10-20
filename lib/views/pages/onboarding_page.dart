@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/views/pages/welcome_page.dart';
 import 'package:veriwork_mobile/widgets/onboarding_items.dart';
-import 'package:veriwork_mobile/widgets/my_button.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -18,12 +17,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
     {
       "title": "Verify Your Status",
       "description":
-          "Quickly verify your employment status with secure authentication",
+          "Quickly verify your employment status with secure authentication.",
       "lottie": "assets/lottie/verify.json",
     },
     {
       "title": "Update Your Profile",
-      "description": "Keep your profile up to date with the latest information",
+      "description":
+          "Keep your profile up to date with the latest information.",
       "lottie": "assets/lottie/update_profile.json",
     },
   ];
@@ -35,7 +35,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       _navigateToMainPage();
     } else {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
       );
     }
@@ -44,7 +44,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void _skipToEnd() {
     _pageController.animateToPage(
       onboardingData.length - 1,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
     );
   }
@@ -63,6 +63,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -82,10 +84,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
               child: TextButton(
                 onPressed: _skipToEnd,
                 child: const Text(
-                  'Skip',
+                  "Skip",
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
               ),
@@ -99,14 +102,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) {
-                      setState(() {
-                        currentIndex = index;
-                      });
+                      setState(() => currentIndex = index);
                     },
                     itemCount: onboardingData.length,
                     itemBuilder: (context, index) {
                       final item = onboardingData[index];
-                      return SingleChildScrollView(
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.08,
+                          vertical: size.height * 0.05,
+                        ),
                         child: OnboardingItem(
                           title: item["title"]!,
                           description: item["description"]!,
@@ -117,33 +122,29 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 ),
 
-                // Page indicators
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      onboardingData.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 8,
-                        width: currentIndex == index ? 24 : 8,
-                        decoration: BoxDecoration(
-                          color: currentIndex == index
-                              ? Colors.blue
-                              : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    onboardingData.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 8,
+                      width: currentIndex == index ? 24 : 8,
+                      decoration: BoxDecoration(
+                        color: currentIndex == index
+                            ? Colors.blue
+                            : Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
 
-                // Bottom navigation buttons
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -158,42 +159,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           },
                           child: Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.arrow_back_rounded,
-                              color: Colors.black87,
+                              color: Colors.blue,
                             ),
                           ),
                         )
                       else
                         const SizedBox(width: 48),
 
-                      // Next/Get Started button
-                      isLastPage
-                          ? Expanded(
-                              child: MyButton(
-                                title: 'Get Started',
-                                onTap: _navigateToMainPage,
-                                color: Colors.blue,
-                              ),
-                            )
-                          : GestureDetector(
-                              onTap: _nextPage,
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                      GestureDetector(
+                        onTap: _nextPage,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

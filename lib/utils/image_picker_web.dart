@@ -2,7 +2,8 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 
 Future<Uint8List?> pickWebImage() async {
-  final html.FileUploadInputElement input = html.FileUploadInputElement()..accept = 'image/*';
+  final html.FileUploadInputElement input = html.FileUploadInputElement()
+    ..accept = 'image/*';
   input.click();
   await input.onChange.first;
   final files = input.files;
@@ -13,7 +14,7 @@ Future<Uint8List?> pickWebImage() async {
     await reader.onLoad.first;
     final result = reader.result;
     if (result is ByteBuffer) {
-      return result.asUint8List();  // Fixed casting: ByteBuffer to Uint8List
+      return result.asUint8List(); // Fixed casting: ByteBuffer to Uint8List
     }
   }
   return null;

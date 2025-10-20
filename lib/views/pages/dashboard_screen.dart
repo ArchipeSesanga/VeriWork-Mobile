@@ -21,7 +21,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
     if (pickedFile != null) {
       if (kIsWeb) {
         final bytes = await pickedFile.readAsBytes();
@@ -40,9 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
-
     setState(() => _selectedIndex = index);
-
     if (index == 0) {
       Navigator.pushReplacement(
         context,
@@ -58,269 +55,265 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: Center(
-          child: Image.asset(
-            'assets/images/Logo.png',
-            height: 40,
-            fit: BoxFit.contain,
-          ),
-        ),
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
-                tooltip: 'Logout',
-              ),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: kIsWeb
-                      ? (_webImageBytes != null
-                          ? MemoryImage(_webImageBytes!)
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>)
-                      : (_mobileImagePath != null
-                          ? FileImage(File(_mobileImagePath!))
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>),
-                  onBackgroundImageError: (_, __) {},
-                ),
-              ),
-              const SizedBox(width: 12),
-            ],
-          ),
-        ],
-      ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
 
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Profile Section
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF5B7CB1),
-                          width: 3,
-                        ),
-                        image: const DecorationImage(
-                          image: AssetImage('assets/profile.jpg'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Samantha Doe',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Employee ID: EMP1245',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Active Employee',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double padding = isTablet ? 32.0 : 16.0;
+        double avatarSize = isTablet ? 140 : 100;
+        double textScale = isTablet ? 1.3 : 1.0;
+
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.blue[700],
+            title: Center(
+              child: Image.asset(
+                'assets/images/Logo.png',
+                height: isTablet ? 60 : 40,
+                fit: BoxFit.contain,
               ),
-
-              // Employee Details
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('JOB TITLE',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey,
-                            letterSpacing: 0.5)),
-                    SizedBox(height: 4),
-                    Text('Senior Software Engineer',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500)),
-                    SizedBox(height: 16),
-                    Text('DEPARTMENT',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey,
-                            letterSpacing: 0.5)),
-                    SizedBox(height: 4),
-                    Text('Engineering',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500)),
-                    SizedBox(height: 16),
-                    Text('EMAIL ADDRESS',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey,
-                            letterSpacing: 0.5)),
-                    SizedBox(height: 4),
-                    Text('jane.doe@company.com',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500)),
-                    SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: 20),
-                        SizedBox(width: 8),
-                        Text('Verified',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.green)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Edit Profile Button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1976D2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Edit Profile',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white)),
+            ),
+            actions: [
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: _logout,
+                    tooltip: 'Logout',
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Verification Status Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Verification Status',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    const Text('Current Status:',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withValues(alpha: 0.3),
-                        border: Border.all(color: Colors.orange, width: 1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text('Pending Review',
-                          style: TextStyle(
-                              color: Colors.orange,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600)),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: isTablet ? 26 : 20,
+                      backgroundImage: kIsWeb
+                          ? (_webImageBytes != null
+                              ? MemoryImage(_webImageBytes!)
+                              : const AssetImage('assets/profile_banner.png')
+                                  as ImageProvider<Object>)
+                          : (_mobileImagePath != null
+                              ? FileImage(File(_mobileImagePath!))
+                              : const AssetImage('assets/profile_banner.png')
+                                  as ImageProvider<Object>),
                     ),
-                    const SizedBox(height: 12),
-                    const Text('Please capture a selfie for verification.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const SelfiePage()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1976D2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('Capture Verification Selfie',
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(width: isTablet ? 20 : 12),
+                ],
               ),
-
-              const SizedBox(height: 40),
             ],
           ),
-        ),
-      ),
-
-      // Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: padding),
+              child: Column(
+                children: [
+                  SizedBox(height: screenHeight * 0.03),
+                  Container(
+                    width: avatarSize,
+                    height: avatarSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: const Color(0xFF5B7CB1), width: 3),
+                      image: const DecorationImage(
+                        image: AssetImage('assets/profile.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  Text(
+                    'Samantha Doe',
+                    style: TextStyle(
+                      fontSize: 20 * textScale,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Employee ID: EMP1245',
+                    style: TextStyle(
+                      fontSize: 14 * textScale,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6 * textScale),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4CAF50),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Active Employee',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12 * textScale,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.04),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('JOB TITLE',
+                          style: TextStyle(
+                              fontSize: 12 * textScale,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey)),
+                      const SizedBox(height: 4),
+                      Text('Senior Software Engineer',
+                          style: TextStyle(
+                              fontSize: 16 * textScale,
+                              fontWeight: FontWeight.w500)),
+                      SizedBox(height: 16),
+                      Text('DEPARTMENT',
+                          style: TextStyle(
+                              fontSize: 12 * textScale,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey)),
+                      const SizedBox(height: 4),
+                      Text('Engineering',
+                          style: TextStyle(
+                              fontSize: 16 * textScale,
+                              fontWeight: FontWeight.w500)),
+                      SizedBox(height: 16),
+                      Text('EMAIL ADDRESS',
+                          style: TextStyle(
+                              fontSize: 12 * textScale,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey)),
+                      const SizedBox(height: 4),
+                      Text('jane.doe@company.com',
+                          style: TextStyle(
+                              fontSize: 16 * textScale,
+                              fontWeight: FontWeight.w500)),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle,
+                              color: Colors.green, size: 20),
+                          SizedBox(width: 8),
+                          Text('Verified',
+                              style: TextStyle(
+                                  fontSize: 14 * textScale,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.green)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: screenHeight * 0.03),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1976D2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                            vertical: isTablet ? 18.0 : 14.0),
+                      ),
+                      child: Text(
+                        'Edit Profile',
+                        style: TextStyle(
+                          fontSize: 16 * textScale,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.04),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Verification Status',
+                      style: TextStyle(
+                          fontSize: 16 * textScale,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Current Status:',
+                      style: TextStyle(
+                          fontSize: 14 * textScale,
+                          fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6 * textScale),
+                    decoration: BoxDecoration(
+                      color: Colors.orangeAccent.withValues(alpha: 0.3),
+                      border: Border.all(color: Colors.orange, width: 1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Pending Review',
+                      style: TextStyle(
+                          color: Colors.orange,
+                          fontSize: 12 * textScale,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Please capture a selfie for verification.',
+                      style: TextStyle(
+                          fontSize: 14 * textScale, color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SelfiePage()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1976D2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                            vertical: isTablet ? 18.0 : 14.0),
+                      ),
+                      child: Text(
+                        'Capture Verification Selfie',
+                        style: TextStyle(
+                            fontSize: 15 * textScale,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.06),
+                ],
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

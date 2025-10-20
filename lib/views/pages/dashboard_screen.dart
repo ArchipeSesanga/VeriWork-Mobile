@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 
@@ -67,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.blue[700],
+            backgroundColor: AppColors.primary,
             title: Center(
               child: Image.asset(
                 'assets/images/Logo.png',

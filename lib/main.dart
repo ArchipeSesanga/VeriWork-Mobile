@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/views/employee/verification_pending_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_rejected.dart';
 import 'package:veriwork_mobile/views/employee/verification_successful_view.dart';
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: AppColors.primary,
           brightness: Brightness.light,
         ),
         textTheme: const TextTheme(
@@ -47,10 +48,16 @@ class MyApp extends StatelessWidget {
           bodyLarge: TextStyle(fontSize: 16),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(AppColors.primary),
+            foregroundColor: WidgetStateProperty.all(Colors.white),
+            padding: WidgetStateProperty.all(
+              const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            ),
+            shape: WidgetStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ),

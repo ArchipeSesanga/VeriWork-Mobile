@@ -82,7 +82,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
-                onPressed: _skipToEnd,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const WelcomeScreen()),
+                  );
+                },
                 child: const Text(
                   "Skip",
                   style: TextStyle(

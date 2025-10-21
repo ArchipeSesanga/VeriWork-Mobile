@@ -198,11 +198,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const Icon(Icons.check_circle,
                               color: Colors.green, size: 20),
                           SizedBox(width: 8),
-                          Text('Verified',
-                              style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.green)),
+                          Center(
+                            child: Text('Verified',
+                                style: TextStyle(
+                                    fontSize: 14 * textScale,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.green)),
+                          ),
                         ],
                       ),
                     ],
@@ -213,7 +215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1976D2),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -278,7 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1976D2),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),

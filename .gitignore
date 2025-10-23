@@ -138,3 +138,4 @@ macos/Flutter/Flutter-Release.xcconfig
 macos/Flutter/Flutter-Debug.xcconfig
 *.xcconfig
 >>>>>>> Sibu-branch
+*.xcconfig

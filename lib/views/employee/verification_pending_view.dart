@@ -35,8 +35,10 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
           });
         }
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to pick image: $e')));
+        }
       }
     }
   }

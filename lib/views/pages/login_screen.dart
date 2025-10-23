@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,47 +11,113 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _employeeNumberController = TextEditingController();
-  final _saIdController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
-    _employeeNumberController.dispose();
-    _saIdController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  String? _validateEmployeeNumber(String? value) {
-    if (value == null || value.isEmpty) return 'Employee number is required';
-    if (value.length < 3) {
-      return 'Employee number must be at least 3 characters';
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Email is required';
     }
-    return null;
-  }
 
-  String? _validateSaId(String? value) {
-    if (value == null || value.isEmpty) return 'SA ID number is required';
-    if (value.length != 13) return 'SA ID number must be 13 digits';
+    if (value.length < 5) {
+      return 'Email too short';
+    }
+
+    const pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+    final regex = RegExp(pattern);
+
+    if (!regex.hasMatch(value.trim())) {
+      return 'Enter a valid email address';
+    }
+
     return null;
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Password is required';
-    if (value.length < 6) return 'Password must be at least 6 characters';
-    return null;
+    if (value == null || value.isEmpty) {
+      return 'Password is required';
+    }
+
+    if (value.length < 5) {
+      return 'Password must be at least 5 characters';
+    }
+
+    // Check if it contains at least one number
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Password must contain at least one number';
+    }
+
+    // Check if it contains at least one special character
+    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      return 'Password must contain at least one special character';
+    }
+
+    return null; // Valid password
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      setState(() => _isLoading = false);
+    if (!_formKey.currentState!.validate()) return;
 
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final firestore = FirebaseFirestore.instance;
+
+      // Query Firestore for user by email
+      final querySnapshot = await firestore
+          .collection('Users')
+          .where('Email', isEqualTo: _emailController.text.trim())
+          .limit(1)
+          .get();
+
+      if (!mounted) return;
+
+      if (querySnapshot.docs.isEmpty) {
+        setState(() {
+          _errorMessage = 'No account found with this email';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final userDoc = querySnapshot.docs.first;
+      final userData = userDoc.data();
+
+      // Use PasswordHash field from your Firestore document
+      final storedPasswordHash = userData['PasswordHash'] as String?;
+
+      if (storedPasswordHash == null) {
+        setState(() {
+          _errorMessage = 'Password not set for this account';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Verify the entered password matches the stored password hash
+      if (_passwordController.text != storedPasswordHash) {
+        setState(() {
+          _errorMessage = 'Invalid password';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // ✅ Login successful - navigate to dashboard
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
@@ -60,6 +126,13 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful!')),
       );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _errorMessage = 'Login failed. Please try again.';
+        _isLoading = false;
+      });
     }
   }
 
@@ -120,31 +193,37 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: isWide ? 30 : 24),
 
-                            // Employee Number
-                            TextFormField(
-                              controller: _employeeNumberController,
-                              decoration: const InputDecoration(
-                                labelText: 'Employee number',
-                                border: UnderlineInputBorder(),
-                                prefixIcon: Icon(Icons.person_outline),
+                            if (_errorMessage != null)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red[200]!),
+                                ),
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                    color: Colors.red[800],
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
-                              validator: _validateEmployeeNumber,
-                            ),
-                            SizedBox(height: fieldSpacing),
+                            if (_errorMessage != null)
+                              SizedBox(height: fieldSpacing),
 
-                            // SA ID Number
+                            // Email Field
                             TextFormField(
-                              controller: _saIdController,
+                              controller: _emailController,
                               decoration: const InputDecoration(
-                                labelText: 'SA ID Number',
+                                labelText: 'Email',
                                 border: UnderlineInputBorder(),
-                                prefixIcon: Icon(Icons.credit_card),
+                                prefixIcon: Icon(Icons.email_outlined),
                               ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(13),
-                              ],
-                              validator: _validateSaId,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: _validateEmail,
+                              textInputAction: TextInputAction.next,
                             ),
                             SizedBox(height: fieldSpacing),
 
@@ -170,10 +249,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               obscureText: !_isPasswordVisible,
                               validator: _validatePassword,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _handleLogin(),
                             ),
                             SizedBox(height: isWide ? 30 : 24),
 
-                            // ✅ Fixed Login Button
+                            // Login Button
                             SizedBox(
                               width: double.infinity,
                               height: size.height * 0.065,
@@ -185,7 +266,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   elevation: 3,
-                                  padding: EdgeInsets.zero,
                                 ),
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -210,7 +290,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // Forgot Password
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                _showForgotPasswordDialog(context);
+                              },
                               child: const Text(
                                 'Forgot your Password?',
                                 style: TextStyle(color: Colors.blue),
@@ -225,6 +307,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Forgot Password?'),
+          content: const Text(
+              'Please contact your administrator to reset your password.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
         );
       },
     );

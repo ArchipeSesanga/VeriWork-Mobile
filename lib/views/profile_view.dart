@@ -30,6 +30,9 @@ class _ProfileViewState extends State<ProfileView> {
   final _emailFocus = FocusNode();
   final _phoneFocus = FocusNode();
 
+  final _formKey = GlobalKey<FormState>();
+  bool _isValidating = false; // Added to trigger re-render
+
   @override
   void initState() {
     super.initState();
@@ -125,7 +128,7 @@ class _ProfileViewState extends State<ProfileView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue[700],
+        backgroundColor: const Color.fromARGB(255, 66, 98, 167),
         title: Center(
           child: Image.asset(
             'assets/app_logo.png',
@@ -242,87 +245,102 @@ class _ProfileViewState extends State<ProfileView> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8.0),
-          _buildField(
-            label: 'Name',
-            controller: _nameController,
-            focusNode: _nameFocus,
-            onChanged: (value) => _updateField('name', value),
-            hintText: 'eg. Jane Doe',
-          ),
-          _buildField(
-            label: 'Employee ID',
-            controller: _employeeIdController,
-            focusNode: _employeeIdFocus,
-            onChanged: (value) => _updateField('employeeId', value),
-            hintText: 'eg. EMP-007',
-          ),
-          _buildField(
-            label: 'Department',
-            controller: _departmentIdController,
-            focusNode: _departmentIdFocus,
-            onChanged: (value) => _updateField('departmentId', value),
-            hintText: 'eg. Human Resources',
-          ),
-          _buildField(
-            label: 'Email Address',
-            controller: _emailController,
-            focusNode: _emailFocus,
-            onChanged: (value) => _updateField('email', value),
-            keyboardType: TextInputType.emailAddress,
-            hintText: 'eg. jane.doe@example.com',
-          ),
-          _buildField(
-            label: 'Phone Number',
-            controller: _phoneController,
-            focusNode: _phoneFocus,
-            onChanged: (value) => _updateField('phone', value),
-            keyboardType: TextInputType.phone,
-            hintText: 'eg. +27 123 456 789',
-            hasCheckIcon: false,
-          ),
-          const SizedBox(height: 24.0),
-          ElevatedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile submitted')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0)),
+          Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.always,
+            child: Column(
+              children: [
+                _buildField(
+                  label: 'Name',
+                  controller: _nameController,
+                  focusNode: _nameFocus,
+                  onChanged: (value) => _updateField('name', value),
+                  hintText: 'eg. Jane Doe',
+                ),
+                _buildField(
+                  label: 'Employee ID',
+                  controller: _employeeIdController,
+                  focusNode: _employeeIdFocus,
+                  onChanged: (value) => _updateField('employeeId', value),
+                  hintText: 'eg. EMP-007',
+                ),
+                _buildField(
+                  label: 'Department',
+                  controller: _departmentIdController,
+                  focusNode: _departmentIdFocus,
+                  onChanged: (value) => _updateField('departmentId', value),
+                  hintText: 'eg. Human Resources',
+                ),
+                _buildField(
+                  label: 'Email Address',
+                  controller: _emailController,
+                  focusNode: _emailFocus,
+                  onChanged: (value) => _updateField('email', value),
+                  keyboardType: TextInputType.emailAddress,
+                  hintText: 'eg. jane.doe@example.com',
+                ),
+                _buildField(
+                  label: 'Phone Number',
+                  controller: _phoneController,
+                  focusNode: _phoneFocus,
+                  onChanged: (value) => _updateField('phone', value),
+                  keyboardType: TextInputType.phone,
+                  hintText: 'eg. +27 123 456 789',
+                  hasCheckIcon: false,
+                ),
+                const SizedBox(height: 24.0),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _isValidating = true; // Trigger re-validation
+                    });
+                    if (_formKey.currentState!.validate()) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Profile submitted')),
+                      );
+                    } else {
+                      // Errors should now be visible due to autovalidateMode
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 66, 98, 167),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0)),
+                  ),
+                  child: const Text('Submit'),
+                ),
+                const SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.home),
+                          onPressed: _navigateHome,
+                          tooltip: 'Home',
+                        ),
+                        const Text('Home'),
+                      ],
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.person),
+                          onPressed: _navigateProfile,
+                          tooltip: 'Profile',
+                        ),
+                        const Text('Profile'),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-            child: const Text('Submit'),
-          ),
-          const SizedBox(height: 16.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.home),
-                    onPressed: _navigateHome,
-                    tooltip: 'Home',
-                  ),
-                  const Text('Home'),
-                ],
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.person),
-                    onPressed: _navigateProfile,
-                    tooltip: 'Profile',
-                  ),
-                  const Text('Profile'),
-                ],
-              ),
-            ],
           ),
         ],
       ),
@@ -348,7 +366,7 @@ class _ProfileViewState extends State<ProfileView> {
             style: const TextStyle(fontSize: 14, color: Colors.black87),
           ),
           const SizedBox(height: 4.0),
-          TextField(
+          TextFormField(
             controller: controller,
             focusNode: focusNode,
             decoration: InputDecoration(
@@ -366,8 +384,39 @@ class _ProfileViewState extends State<ProfileView> {
                 color: Colors.grey[400],
                 fontStyle: FontStyle.italic,
               ),
+              errorStyle: const TextStyle(color: Colors.red),
             ),
             keyboardType: keyboardType,
+            onChanged: onChanged,
+            validator: (value) {
+              print('Validating $label: ${value ?? "null"}'); // Debug print
+              if (value == null || value.isEmpty) {
+                return '$label is required';
+              }
+              if (label == 'Employee ID' && value.length < 3) {
+                return 'Employee number must be at least 3 digits';
+              }
+              if (label == 'Email Address' && !RegExp(
+                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+              ).hasMatch(value)) {
+                return 'Please enter a valid email address';
+              }
+              if (label == 'Phone Number' && !RegExp(
+                r'^\+27\d{9}$'
+              ).hasMatch(value)) {
+                return 'Please enter a valid South African phone number (e.g., +27123456789)';
+              }
+              return null;
+            },
+            autovalidateMode: AutovalidateMode.always,
+            selectionControls: MaterialTextSelectionControls(),
+            onTap: () {
+              if (controller.selection.isCollapsed) {
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: controller.selection.baseOffset),
+                );
+              }
+            },
           ),
         ],
       ),

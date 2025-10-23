@@ -59,11 +59,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() => _webImageBytes = bytes);
-      } else {
-        setState(() => _mobileImagePath = pickedFile.path);
+      try {
+        final authService = Provider.of<AuthService>(context, listen: false);
+
+        // TODO: Implement image upload to storage and get download URL
+        // For now, we'll just update the local state
+        if (kIsWeb) {
+          final bytes = await pickedFile.readAsBytes();
+          setState(() => _webImageBytes = bytes);
+        } else {
+          setState(() => _mobileImagePath = pickedFile.path);
+        }
+
+        // After uploading to storage, update Firestore:
+        // String downloadUrl = await uploadImageToStorage(...);
+        // await authService.updateProfileImage(downloadUrl);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile image updated')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update image: $e')),
+        );
       }
     }
   }
@@ -72,12 +90,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signOut(context);
-      // Navigate to login screen
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logout failed: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: $e')),
+        );
+      }
     }
   }
 
@@ -136,7 +154,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (_mobileImagePath != null) return FileImage(File(_mobileImagePath!));
     }
 
-    // Fallback to network or asset image
+    // Fallback to network image from Firestore
     if (_userProfile?.imageUrl != null && _userProfile!.imageUrl!.isNotEmpty) {
       return NetworkImage(_userProfile!.imageUrl!);
     }

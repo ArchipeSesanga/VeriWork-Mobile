@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -49,21 +50,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return 'Password is required';
     }
 
-    if (value.length < 5) {
-      return 'Password must be at least 5 characters';
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
     }
 
-    // Check if it contains at least one number
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number';
-    }
-
-    // Check if it contains at least one special character
-    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-      return 'Password must contain at least one special character';
-    }
-
-    return null; // Valid password
+    return null;
   }
 
   Future<void> _handleLogin() async {
@@ -75,57 +66,32 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final firestore = FirebaseFirestore.instance;
+      final authService = Provider.of<AuthService>(context, listen: false);
 
-      // Query Firestore for user by email
-      final querySnapshot = await firestore
-          .collection('Users')
-          .where('Email', isEqualTo: _emailController.text.trim())
-          .limit(1)
-          .get();
+      final user = await authService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        context: context,
+      );
 
       if (!mounted) return;
 
-      if (querySnapshot.docs.isEmpty) {
+      if (user != null) {
+        // ✅ Login successful - navigate to dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful!')),
+        );
+      } else {
+        // Error message is already handled by AuthService
         setState(() {
-          _errorMessage = 'No account found with this email';
           _isLoading = false;
         });
-        return;
       }
-
-      final userDoc = querySnapshot.docs.first;
-      final userData = userDoc.data();
-
-      // Use PasswordHash field from your Firestore document
-      final storedPasswordHash = userData['PasswordHash'] as String?;
-
-      if (storedPasswordHash == null) {
-        setState(() {
-          _errorMessage = 'Password not set for this account';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      // Verify the entered password matches the stored password hash
-      if (_passwordController.text != storedPasswordHash) {
-        setState(() {
-          _errorMessage = 'Invalid password';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      // ✅ Login successful - navigate to dashboard
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful!')),
-      );
     } catch (e) {
       if (!mounted) return;
 
@@ -316,16 +282,65 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final emailController = TextEditingController();
+
         return AlertDialog(
-          title: const Text('Forgot Password?'),
-          content: const Text(
-              'Please contact your administrator to reset your password.'),
+          title: const Text('Reset Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter your email address to reset your password:'),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: _validateEmail,
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_validateEmail(emailController.text) == null) {
+                  try {
+                    final authService =
+                        Provider.of<AuthService>(context, listen: false);
+                    await authService
+                        .sendPasswordResetEmail(emailController.text.trim());
+
+                    if (!mounted) return;
+
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Password reset email sent! Check your inbox.'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to send reset email: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Send Reset Link'),
             ),
           ],
         );

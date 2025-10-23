@@ -17,79 +17,83 @@ class WelcomeScreen extends StatelessWidget {
             ),
           ),
 
-          // Main content
           SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Column shrinks to its content
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Logo
-                  Image.asset(
-                    'assets/images/Logo.png',
-                    height: 250,
-                  ),
-                  const SizedBox(height: 100),
+            child: Column(
+              children: [
+                // Scrollable main content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo
+                        Image.asset(
+                          'assets/images/Logo.png',
+                          height: 250,
+                        ),
+                        const SizedBox(height: 40),
 
-                  // Title
-                  const Text(
-                    "Welcome",
-                    style: TextStyle(
-                      fontFamily: 'Unbounded',
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                        // Title
+                        const Text(
+                          "Welcome",
+                          style: TextStyle(
+                            fontFamily: 'Unbounded',
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
 
-                  // Subtitle
-                  const Text(
-                    "Your very own Employee Verification App!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Login button pinned at bottom
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black, // Matches your screenshot
+                        // Subtitle
+                        const Text(
+                          "Your very own Employee Verification App!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+
+                // Login button pinned at bottom
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        "Login",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -3,21 +3,17 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-
-// Fixed conditional import (same as profile_view.dart)
-import '../../utils/image_picker_web.dart' if (dart.library.html) '../../utils/image_picker_web.dart' if (dart.library.io) '../../utils/image_picker_mobile.dart';
-
-import '../../models/profile_model.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 
 class VerificationPendingView extends StatefulWidget {
   const VerificationPendingView({super.key});
 
   @override
-  State<VerificationPendingView> createState() => _VerificationPendingViewState();
+  State<VerificationPendingView> createState() =>
+      _VerificationPendingViewState();
 }
 
 class _VerificationPendingViewState extends State<VerificationPendingView> {
-  late ProfileModel _profile;
   Uint8List? _webImageBytes;
   String? _mobileImagePath;
 
@@ -51,32 +47,22 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
   }
 
   void _navigateHome() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Navigating to Home')));
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+    );
   }
 
   void _navigateProfile() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Already on Verification Pending')));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _profile = ProfileModel(
-      name: '',
-      employeeId: '',
-      departmentId: '',
-      email: '',
-      phone: '',
-      imageUrl: null,
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Already on Verification Pending')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // White background as specified
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.blue[700],
         title: Center(
@@ -122,11 +108,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.blue),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Going back...')),
-                );
-              },
+              onPressed: () => Navigator.pop(context),
               tooltip: 'Back',
             ),
             const SizedBox(height: 16.0),
@@ -141,11 +123,11 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
               ),
             ),
             const SizedBox(height: 32.0),
-            Center(
+            const Center(
               child: Icon(
-                Icons.access_time, // Placeholder for Lottie clock animation
+                Icons.access_time,
                 size: 100,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Colors.black,
               ),
             ),
             const SizedBox(height: 16.0),
@@ -170,14 +152,9 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
                 ),
               ),
             ),
-            const Spacer(), // Pushes button and icons to the bottom
+            const Spacer(),
             ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Navigating to Home...')),
-                );
-                // Add navigation to home screen here later
-              },
+              onPressed: _navigateHome,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[700],
                 foregroundColor: Colors.white,

@@ -6,9 +6,10 @@ import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
-import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
+import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      final authService = Provider.of<AuthService>(context, listen: false);
+      final authService = AuthService();
       final profile = await authService.getUserProfile();
       if (mounted) {
         setState(() {
@@ -81,19 +82,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update image: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _logout() async {
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-      await authService.signOut(context);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed: $e')),
         );
       }
     }
@@ -164,6 +152,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    LoginViewModel viewModel =
+        Provider.of<LoginViewModel>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -189,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.logout),
-                    onPressed: _logout,
+                    onPressed: () => viewModel.logoutUser(context),
                     tooltip: 'Logout',
                   ),
                   GestureDetector(

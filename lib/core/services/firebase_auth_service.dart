@@ -1,63 +1,62 @@
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
 
 class AuthService {
-  final FirebaseAuth _auth;
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  AuthService(this._auth);
+  // get the current logged in user
+  User getCurrentUser() {
+    User user = firebaseAuth.currentUser!;
+    return user;
+  }
+
+  Future<bool> loginUser({String? email, String? password}) async {
+    var res = await firebaseAuth.signInWithEmailAndPassword(
+      email: '$email',
+      password: '$password',
+    );
+
+    if (res.user != null) {
+      // account login was successful
+      return true;
+    } else {
+      // account login was not successful
+      return false;
+    }
+  }
+
+  forgotPassword(String email) async {
+    await firebaseAuth.sendPasswordResetEmail(email: email);
+  }
+
+  logOut() async {
+    await firebaseAuth.signOut();
+  }
 
   // Fetch user profile - combine Auth data with minimal Firestore for extended fields
   Future<ProfileModel?> getUserProfile() async {
-    final user = _auth.currentUser;
-    if (user == null) return null;
+    final user = getCurrentUser();
 
     try {
       await user.reload();
-      final currentUser = _auth.currentUser;
+      final currentUser = getCurrentUser();
 
-      if (currentUser != null) {
-        // Create basic profile from Auth data
-        return ProfileModel(
-          employeeId: currentUser.uid,
-          email: currentUser.email,
-          name: currentUser.displayName?.split(' ').first, // Extract first name
-          surname:
-              currentUser.displayName?.split(' ').last, // Extract last name
-          imageUrl: currentUser.photoURL,
-          phone: currentUser.phoneNumber,
-          isVerified: currentUser.emailVerified,
-          // Note: Other fields like departmentId, role, position would need
-          // to be stored elsewhere or use custom claims
-        );
-      }
+      // Create basic profile from Auth data
+      return ProfileModel(
+        employeeId: currentUser.uid,
+        email: currentUser.email,
+        name: currentUser.displayName?.split(' ').first, // Extract first name
+        surname: currentUser.displayName?.split(' ').last, // Extract last name
+        imageUrl: currentUser.photoURL,
+        phone: currentUser.phoneNumber,
+        isVerified: currentUser.emailVerified,
+        // Note: Other fields like departmentId, role, position would need
+        // to be stored elsewhere or use custom claims
+      );
     } catch (_) {
       rethrow;
-    }
-    return null;
-  }
-
-  // Sign in user with email & password
-  Future<User?> signInWithEmail({
-    required String email,
-    required String password,
-    BuildContext? context,
-  }) async {
-    try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
-
-      return userCredential.user;
-    } on FirebaseAuthException catch (e) {
-      if (context != null && context.mounted) {
-        _handleAuthError(e, context);
-      }
-    } catch (_) {
-      if (context != null && context.mounted) {
-        _showErrorSnackBar(context, 'Sign in failed. Please try again.');
-      }
     }
     return null;
   }
@@ -68,8 +67,7 @@ class AuthService {
     String? photoURL,
     String? phoneNumber,
   }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+    final user = getCurrentUser();
 
     try {
       if (displayName != null) {
@@ -91,8 +89,7 @@ class AuthService {
 
   // Update user email
   Future<void> updateEmail(String newEmail, String password) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+    final user = getCurrentUser();
 
     try {
       // Reauthenticate before changing email
@@ -109,152 +106,39 @@ class AuthService {
 
   // Send email verification
   Future<void> sendEmailVerification() async {
-    final user = _auth.currentUser;
-    if (user != null && !user.emailVerified) {
+    final user = getCurrentUser();
+    if (!user.emailVerified) {
       await user.sendEmailVerification();
     }
   }
 
-  // Handle FirebaseAuth errors
-  void _handleAuthError(FirebaseAuthException e, BuildContext context) {
-    String errorMessage;
-
-    switch (e.code) {
-      case 'user-not-found':
-        errorMessage = 'No user found with this email.';
-        break;
-      case 'wrong-password':
-        errorMessage = 'Incorrect password.';
-        break;
-      case 'invalid-email':
-        errorMessage = 'Invalid email address.';
-        break;
-      case 'user-disabled':
-        errorMessage = 'This account has been disabled.';
-        break;
-      case 'too-many-requests':
-        errorMessage = 'Too many attempts. Please try again later.';
-        break;
-      case 'email-already-in-use':
-        errorMessage = 'This email is already registered.';
-        break;
-      case 'weak-password':
-        errorMessage = 'Password is too weak.';
-        break;
-      case 'requires-recent-login':
-        errorMessage = 'Please sign in again to update your email.';
-        break;
-      default:
-        errorMessage = 'Authentication failed. Please try again.';
-    }
-
-    _showErrorSnackBar(context, errorMessage);
-  }
-
-  // Show error SnackBar safely
-  void _showErrorSnackBar(BuildContext context, String message) {
-    if (!context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  // Sign out user
-  Future<void> signOut(BuildContext context) async {
-    try {
-      await _auth.signOut();
-
-      if (context.mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (route) => false);
-      }
-    } on FirebaseAuthException {
-      if (context.mounted) {
-        _showErrorSnackBar(context, 'Sign out failed. Please try again.');
-      }
-    } catch (_) {
-      if (context.mounted) {
-        _showErrorSnackBar(context, 'An unexpected error occurred.');
-      }
-    }
-  }
-
-  // Check if user is verified (using email verification from Auth)
-  Future<bool> isUserVerified() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      await user.reload();
-      return user.emailVerified;
-    }
-    return false;
-  }
-
-  // Send password reset email
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
-    } on FirebaseAuthException {
-      rethrow;
-    }
-  }
-
-  // Get current user ID
-  String? get currentUserId => _auth.currentUser?.uid;
-
-  // Check if user is logged in
-  bool get isLoggedIn => _auth.currentUser != null;
-
-  // Stream for auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  // Stream for user profile changes (from Auth only)
-  Stream<ProfileModel?> get userProfileStream {
-    return _auth.userChanges().asyncMap((user) {
-      if (user != null) {
-        return ProfileModel(
-          employeeId: user.uid,
-          email: user.email,
-          name: user.displayName?.split(' ').first,
-          surname: user.displayName?.split(' ').last,
-          imageUrl: user.photoURL,
-          phone: user.phoneNumber,
-          isVerified: user.emailVerified,
-        );
-      }
-      return null;
-    });
-  }
-
-  // Get user metadata
-  Map<String, dynamic>? get userMetadata {
-    final user = _auth.currentUser;
-    if (user == null) return null;
-
-    return {
-      'creationTime': user.metadata.creationTime,
-      'lastSignInTime': user.metadata.lastSignInTime,
-    };
-  }
-
-  // Delete user account
-  Future<void> deleteAccount(String password) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    try {
-      // Reauthenticate before deletion
-      final credential =
-          EmailAuthProvider.credential(email: user.email!, password: password);
-      await user.reauthenticateWithCredential(credential);
-
-      await user.delete();
-    } catch (_) {
-      rethrow;
+  // Error Messages Handeler
+  String handleFirebaseAuthError(String e) {
+    if (e.contains("ERROR_WEAK_PASSWORD")) {
+      return "Password is too weak";
+    } else if (e.contains("invalid-email")) {
+      return "Invalid Email";
+    } else if (e.contains("ERROR_EMAIL_ALREADY_IN_USE") ||
+        e.contains('email-already-in-use')) {
+      return "The email address is already in use by another account.";
+    } else if (e.contains("ERROR_NETWORK_REQUEST_FAILED")) {
+      return "Network error occured!";
+    } else if (e.contains("ERROR_USER_NOT_FOUND") ||
+        e.contains('firebase_auth/user-not-found')) {
+      return "Invalid credentials.";
+    } else if (e.contains("ERROR_WRONG_PASSWORD") ||
+        e.contains('wrong-password')) {
+      return "Invalid credentials.";
+    } else if (e.contains("firebase_auth/invalid-credentials") ||
+        e.contains('wrong-password')) {
+      return "Invalid credentials.";
+    } else if (e.contains('firebase_auth/requires-recent-login')) {
+      return 'This operation is sensitive and requires recent authentication.'
+          ' Log in again before retrying this request.';
+    } else if (e.contains('firebase_auth/network-request-failed')) {
+      return 'Please check your internet connection.';
+    } else {
+      return e;
     }
   }
 }

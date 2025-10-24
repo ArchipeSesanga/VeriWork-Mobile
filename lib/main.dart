@@ -1,20 +1,17 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// Core imports
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/core/constants/app_theme.dart';
-import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/firebase_options.dart';
-
-// Views
+import 'package:veriwork_mobile/core/utils/firebase.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -29,25 +26,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Provide FirebaseAuth instance
-        Provider<FirebaseAuth>(
-          create: (_) => FirebaseAuth.instance,
-        ),
-
-        // Provide AuthService (this matches your class in firebase_auth_service.dart)
-        Provider<AuthService>(
-          create: (_) => AuthService(FirebaseAuth.instance),
-        ),
+        ChangeNotifierProvider(create: (context) => LoginViewModel()),
+        ChangeNotifierProvider(create: (context) => ForgotPassViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'VeriWork',
         theme: AppTheme.lightTheme,
-        initialRoute: AppRoutes.onboarding,
-        routes: AppRoutes.routes,
-        onUnknownRoute: (settings) => MaterialPageRoute(
-          builder: (context) => const OnboardingPage(),
+        home: StreamBuilder(
+          stream: firebaseAuth.authStateChanges(),
+          builder: (context, snapshot) {
+            // check if user signed in
+            if (snapshot.hasData) {
+              return const DashboardScreen();
+            } else {
+              // user not loggedin
+              return const OnboardingPage();
+            }
+          },
         ),
+        onGenerateRoute: AppRoutes.routes,
       ),
     );
   }

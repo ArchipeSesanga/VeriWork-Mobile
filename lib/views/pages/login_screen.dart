@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
-import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/core/utils/validations.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,99 +12,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   String? _errorMessage;
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email is required';
-    }
-
-    if (value.length < 5) {
-      return 'Email too short';
-    }
-
-    const pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
-    final regex = RegExp(pattern);
-
-    if (!regex.hasMatch(value.trim())) {
-      return 'Enter a valid email address';
-    }
-
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-
-    return null;
-  }
-
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final authService = Provider.of<AuthService>(context, listen: false);
-
-      final user = await authService.signInWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        context: context,
-      );
-
-      if (!mounted) return;
-
-      if (user != null) {
-        // ✅ Login successful - navigate to dashboard
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login successful!')),
-        );
-      } else {
-        // Error message is already handled by AuthService
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _errorMessage = 'Login failed. Please try again.';
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    LoginViewModel viewModel =
+        Provider.of<LoginViewModel>(context, listen: false);
     final size = MediaQuery.of(context).size;
 
     return LayoutBuilder(
@@ -116,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final formRadius = isWide ? 50.0 : 40.0;
 
         return Scaffold(
+          key: viewModel.scaffoldKey,
           body: Stack(
             children: [
               Container(
@@ -144,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         vertical: paddingVertical,
                       ),
                       child: Form(
-                        key: _formKey,
+                        key: viewModel.formKey,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -181,21 +98,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // Email Field
                             TextFormField(
-                              controller: _emailController,
                               decoration: const InputDecoration(
                                 labelText: 'Email',
                                 border: UnderlineInputBorder(),
                                 prefixIcon: Icon(Icons.email_outlined),
                               ),
                               keyboardType: TextInputType.emailAddress,
-                              validator: _validateEmail,
+                              validator: Validations.validateEmail,
                               textInputAction: TextInputAction.next,
+                              onSaved: (value) {
+                                viewModel.setEmail(value);
+                              },
                             ),
                             SizedBox(height: fieldSpacing),
 
                             // Password
                             TextFormField(
-                              controller: _passwordController,
                               decoration: InputDecoration(
                                 labelText: 'Password',
                                 border: const UnderlineInputBorder(),
@@ -214,9 +132,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               obscureText: !_isPasswordVisible,
-                              validator: _validatePassword,
+                              validator: Validations.validatePassword,
                               textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) => _handleLogin(),
+                              onFieldSubmitted: (_) => viewModel.login(context),
+                              onSaved: (value) {
+                                viewModel.setPassword(value);
+                              },
                             ),
                             SizedBox(height: isWide ? 30 : 24),
 
@@ -225,7 +146,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: double.infinity,
                               height: size.height * 0.065,
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
+                                onPressed: viewModel.loading
+                                    ? null
+                                    : () {
+                                        viewModel.login(context);
+                                      },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF1976D2),
                                   shape: RoundedRectangleBorder(
@@ -282,7 +207,8 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final emailController = TextEditingController();
+        ForgotPassViewModel viewModel =
+            Provider.of<ForgotPassViewModel>(context, listen: false);
 
         return AlertDialog(
           title: const Text('Reset Password'),
@@ -291,15 +217,20 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Text('Enter your email address to reset your password:'),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
+              Form(
+                key: viewModel.formKey,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validations.validateEmail,
+                  onSaved: (value) {
+                    viewModel.setEmail(value);
+                  },
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: _validateEmail,
-              ),
+              )
             ],
           ),
           actions: [
@@ -310,36 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () async {
-                if (_validateEmail(emailController.text) == null) {
-                  try {
-                    final authService =
-                        Provider.of<AuthService>(context, listen: false);
-                    await authService
-                        .sendPasswordResetEmail(emailController.text.trim());
-
-                    if (!mounted) return;
-
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Password reset email sent! Check your inbox.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } catch (e) {
-                    if (!mounted) return;
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to send reset email: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
+              onPressed: () => viewModel.forgotPassword(context),
               child: const Text('Send Reset Link'),
             ),
           ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -69,11 +69,8 @@ class WelcomeScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
+                        Navigator.of(context)
+                            .pushReplacementNamed(AppRoutes.login);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,

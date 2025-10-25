@@ -1,14 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/core/constants/app_colours.dart';
-import 'package:veriwork_mobile/views/employee/verification_pending_view.dart';
-import 'package:veriwork_mobile/views/employee/verification_rejected.dart';
-import 'package:veriwork_mobile/views/employee/verification_successful_view.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
-import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
-import 'package:veriwork_mobile/views/employee/profile_view.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/core/constants/app_theme.dart';
+import 'package:veriwork_mobile/firebase_options.dart';
+import 'package:veriwork_mobile/core/utils/firebase.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 
@@ -17,57 +24,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'VeriWork',
-      initialRoute: '/verification_rejected',
-      routes: {
-        '/': (context) => const OnboardingPage(),
-        '/login': (context) => const LoginScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-        '/profile_settings': (context) => const ProfileView(),
-        '/verification_pending': (context) => const VerificationPendingView(),
-        '/verification_successful': (context) =>
-            const VerificationSuccessfulView(),
-        '/verification_rejected': (context) => const VerificationRejectedView(),
-      },
-      onUnknownRoute: (settings) => MaterialPageRoute(
-        builder: (context) => const OnboardingPage(),
-      ),
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          brightness: Brightness.light,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => LoginViewModel()),
+        ChangeNotifierProvider(create: (context) => ForgotPassViewModel()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'VeriWork',
+        theme: AppTheme.lightTheme,
+        home: StreamBuilder(
+          stream: firebaseAuth.authStateChanges(),
+          builder: (context, snapshot) {
+            // check if user signed in
+            if (snapshot.hasData) {
+              return const DashboardScreen();
+            } else {
+              // user not loggedin
+              return const OnboardingPage();
+            }
+          },
         ),
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-          bodyLarge: TextStyle(fontSize: 16),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all(AppColors.primary),
-            foregroundColor: WidgetStateProperty.all(Colors.white),
-            padding: WidgetStateProperty.all(
-              const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            ),
-            shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
+        onGenerateRoute: AppRoutes.routes,
       ),
     );
   }

@@ -18,6 +18,10 @@ class _ProfileViewState extends State<ProfileView> {
   Uint8List? _webImageBytes;
   String? _mobileImagePath;
 
+  // Firebase hosted image (default)
+  final String firebaseImageUrl =
+      "https://firebasestorage.googleapis.com/v0/b/veriwork-database.firebasestorage.app/o/f0e3e68a-d57c-4790-b030-23ef42b2280a_greenp-arrot.jpg?alt=media";
+
   // Controllers for each field to maintain cursor and focus
   final _nameController = TextEditingController();
   final _employeeIdController = TextEditingController();
@@ -43,17 +47,10 @@ class _ProfileViewState extends State<ProfileView> {
       phone: '',
       imageUrl: null,
     );
-    // Initialize controllers with empty values (hint text will guide)
-    _nameController.text = '';
-    _employeeIdController.text = '';
-    _departmentIdController.text = '';
-    _emailController.text = '';
-    _phoneController.text = '';
   }
 
   @override
   void dispose() {
-    // Clean up controllers and focus nodes
     _nameController.dispose();
     _employeeIdController.dispose();
     _departmentIdController.dispose();
@@ -69,7 +66,6 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _pickImage() async {
     if (kIsWeb) {
-      // Web image picker using ImagePicker
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
@@ -86,8 +82,10 @@ class _ProfileViewState extends State<ProfileView> {
           });
         }
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to pick image: $e')));
+        }
       }
     }
   }
@@ -101,13 +99,6 @@ class _ProfileViewState extends State<ProfileView> {
         email: field == 'email' ? value : _profile.email,
         phone: field == 'phone' ? value : _profile.phone,
       );
-      // Update the corresponding controller with the new value
-      if (field == 'name') _nameController.text = value;
-      if (field == 'employeeId') _employeeIdController.text = value;
-      if (field == 'departmentId') _departmentIdController.text = value;
-      if (field == 'email') _emailController.text = value;
-      if (field == 'phone') _phoneController.text = value;
-      // Set cursor to the end to avoid selection
       final controller = {
         'name': _nameController,
         'employeeId': _employeeIdController,
@@ -116,6 +107,7 @@ class _ProfileViewState extends State<ProfileView> {
         'phone': _phoneController,
       }[field];
       if (controller != null) {
+        controller.text = value;
         controller.selection = TextSelection.fromPosition(
           TextPosition(offset: controller.text.length),
         );
@@ -140,6 +132,16 @@ class _ProfileViewState extends State<ProfileView> {
         .showSnackBar(const SnackBar(content: Text('Already on Profile')));
   }
 
+  ImageProvider<Object> _getProfileImage() {
+    if (kIsWeb) {
+      if (_webImageBytes != null) return MemoryImage(_webImageBytes!);
+      return NetworkImage(firebaseImageUrl);
+    } else {
+      if (_mobileImagePath != null) return FileImage(File(_mobileImagePath!));
+      return NetworkImage(firebaseImageUrl);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,8 +149,8 @@ class _ProfileViewState extends State<ProfileView> {
         backgroundColor: Colors.blue[700],
         title: Center(
           child: Image.asset(
-            'assets/images/Logo.png', // Replace with your logo file name
-            height: 40, // Adjust height as needed
+            'assets/images/Logo.png',
+            height: 40,
             fit: BoxFit.contain,
           ),
         ),
@@ -163,16 +165,8 @@ class _ProfileViewState extends State<ProfileView> {
               GestureDetector(
                 onTap: _pickImage,
                 child: CircleAvatar(
-                  radius: 20, // Smaller radius for app bar
-                  backgroundImage: kIsWeb
-                      ? (_webImageBytes != null
-                          ? MemoryImage(_webImageBytes!)
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>)
-                      : (_mobileImagePath != null
-                          ? FileImage(File(_mobileImagePath!))
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>),
+                  radius: 20,
+                  backgroundImage: _getProfileImage(),
                   onBackgroundImageError: (_, __) {},
                 ),
               ),
@@ -205,19 +199,8 @@ class _ProfileViewState extends State<ProfileView> {
                       children: [
                         CircleAvatar(
                           radius: 40,
-                          backgroundImage: kIsWeb
-                              ? (_webImageBytes != null
-                                  ? MemoryImage(_webImageBytes!)
-                                  : const AssetImage(
-                                          'assets/profile_banner.png')
-                                      as ImageProvider<Object>)
-                              : (_mobileImagePath != null
-                                  ? FileImage(File(_mobileImagePath!))
-                                  : const AssetImage(
-                                          'assets/profile_banner.png')
-                                      as ImageProvider<Object>),
-                          onBackgroundImageError: (_, __) =>
-                              const AssetImage('assets/profile_banner.png'),
+                          backgroundImage: _getProfileImage(),
+                          onBackgroundImageError: (_, __) {},
                         ),
                         Positioned(
                           bottom: 0,
@@ -229,7 +212,8 @@ class _ProfileViewState extends State<ProfileView> {
                               shape: BoxShape.circle,
                               color: Colors.green,
                               border: Border.fromBorderSide(
-                                  BorderSide(color: Colors.white, width: 2)),
+                                BorderSide(color: Colors.white, width: 2),
+                              ),
                             ),
                           ),
                         ),
@@ -311,7 +295,8 @@ class _ProfileViewState extends State<ProfileView> {
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0)),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
             child: const Text('Submit'),
           ),
@@ -362,10 +347,8 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-          ),
+          Text(label,
+              style: const TextStyle(fontSize: 14, color: Colors.black87)),
           const SizedBox(height: 4.0),
           TextField(
             controller: controller,
@@ -388,15 +371,6 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             keyboardType: keyboardType,
             onChanged: onChanged,
-            selectionControls: MaterialTextSelectionControls(),
-            enableInteractiveSelection: true,
-            onTap: () {
-              if (controller.selection.isCollapsed) {
-                controller.selection = TextSelection.fromPosition(
-                  TextPosition(offset: controller.selection.baseOffset),
-                );
-              }
-            },
           ),
         ],
       ),

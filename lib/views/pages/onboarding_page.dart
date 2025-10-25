@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/views/pages/welcome_page.dart';
 import 'package:veriwork_mobile/widgets/onboarding_items.dart';
 
@@ -83,11 +84,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               right: 16,
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const WelcomeScreen()),
-                  );
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
                 },
                 child: const Text(
                   "Skip",

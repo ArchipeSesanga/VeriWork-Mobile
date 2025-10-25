@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:veriwork_mobile/core/constants/app_colours.dart';
-import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/utils/validations.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,61 +12,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _employeeNumberController = TextEditingController();
-  final _saIdController = TextEditingController();
-  final _passwordController = TextEditingController();
-
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _employeeNumberController.dispose();
-    _saIdController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  String? _validateEmployeeNumber(String? value) {
-    if (value == null || value.isEmpty) return 'Employee number is required';
-    if (value.length < 3) {
-      return 'Employee number must be at least 3 characters';
-    }
-    return null;
-  }
-
-  String? _validateSaId(String? value) {
-    if (value == null || value.isEmpty) return 'SA ID number is required';
-    if (value.length != 13) return 'SA ID number must be 13 digits';
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Password is required';
-    if (value.length < 6) return 'Password must be at least 6 characters';
-    return null;
-  }
-
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      setState(() => _isLoading = false);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful!')),
-      );
-    }
-  }
+  final bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
+    LoginViewModel viewModel =
+        Provider.of<LoginViewModel>(context, listen: false);
     final size = MediaQuery.of(context).size;
 
     return LayoutBuilder(
@@ -78,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final formRadius = isWide ? 50.0 : 40.0;
 
         return Scaffold(
+          key: viewModel.scaffoldKey,
           body: Stack(
             children: [
               Container(
@@ -106,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         vertical: paddingVertical,
                       ),
                       child: Form(
-                        key: _formKey,
+                        key: viewModel.formKey,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -121,37 +76,44 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             SizedBox(height: isWide ? 30 : 24),
 
-                            // Employee Number
-                            TextFormField(
-                              controller: _employeeNumberController,
-                              decoration: const InputDecoration(
-                                labelText: 'Employee number',
-                                border: UnderlineInputBorder(),
-                                prefixIcon: Icon(Icons.person_outline),
+                            if (_errorMessage != null)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red[200]!),
+                                ),
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                    color: Colors.red[800],
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
-                              validator: _validateEmployeeNumber,
-                            ),
-                            SizedBox(height: fieldSpacing),
+                            if (_errorMessage != null)
+                              SizedBox(height: fieldSpacing),
 
-                            // SA ID Number
+                            // Email Field
                             TextFormField(
-                              controller: _saIdController,
                               decoration: const InputDecoration(
-                                labelText: 'SA ID Number',
+                                labelText: 'Email',
                                 border: UnderlineInputBorder(),
-                                prefixIcon: Icon(Icons.credit_card),
+                                prefixIcon: Icon(Icons.email_outlined),
                               ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(13),
-                              ],
-                              validator: _validateSaId,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: Validations.validateEmail,
+                              textInputAction: TextInputAction.next,
+                              onSaved: (value) {
+                                viewModel.setEmail(value);
+                              },
                             ),
                             SizedBox(height: fieldSpacing),
 
                             // Password
                             TextFormField(
-                              controller: _passwordController,
                               decoration: InputDecoration(
                                 labelText: 'Password',
                                 border: const UnderlineInputBorder(),
@@ -170,23 +132,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               obscureText: !_isPasswordVisible,
-                              validator: _validatePassword,
+                              validator: Validations.validatePassword,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => viewModel.login(context),
+                              onSaved: (value) {
+                                viewModel.setPassword(value);
+                              },
                             ),
                             SizedBox(height: isWide ? 30 : 24),
 
-                            // ✅ Fixed Login Button
+                            // Login Button
                             SizedBox(
                               width: double.infinity,
                               height: size.height * 0.065,
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
+                                onPressed: viewModel.loading
+                                    ? null
+                                    : () {
+                                        viewModel.login(context);
+                                      },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
+                                  backgroundColor: const Color(0xFF1976D2),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   elevation: 3,
-                                  padding: EdgeInsets.zero,
                                 ),
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -211,7 +181,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // Forgot Password
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                _showForgotPasswordDialog(context);
+                              },
                               child: const Text(
                                 'Forgot your Password?',
                                 style: TextStyle(color: Colors.blue),
@@ -226,6 +198,53 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        ForgotPassViewModel viewModel =
+            Provider.of<ForgotPassViewModel>(context, listen: false);
+
+        return AlertDialog(
+          title: const Text('Reset Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter your email address to reset your password:'),
+              const SizedBox(height: 16),
+              Form(
+                key: viewModel.formKey,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validations.validateEmail,
+                  onSaved: (value) {
+                    viewModel.setEmail(value);
+                  },
+                ),
+              )
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => viewModel.forgotPassword(context),
+              child: const Text('Send Reset Link'),
+            ),
+          ],
         );
       },
     );

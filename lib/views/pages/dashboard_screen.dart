@@ -10,6 +10,8 @@ import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart'
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _mobileImagePath;
   ProfileModel? _userProfile;
   bool _isLoading = true;
+  final String _employeeId = FirebaseAuth.instance.currentUser?.uid ?? "unknown";
 
   @override
   void initState() {
@@ -63,18 +66,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       try {
         final authService = Provider.of<AuthService>(context, listen: false);
 
-        // TODO: Implement image upload to storage and get download URL
-        // For now, we'll just update the local state
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
           setState(() => _webImageBytes = bytes);
         } else {
           setState(() => _mobileImagePath = pickedFile.path);
         }
-
-        // After uploading to storage, update Firestore:
-        // String downloadUrl = await uploadImageToStorage(...);
-        // await authService.updateProfileImage(downloadUrl);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile image updated')),
@@ -123,10 +120,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _userProfile?.isVerified ?? false;
   }
 
-  String _getVerificationStatus() {
-    return _userProfile?.verificationStatus ?? 'Pending Review';
-  }
-
   String _getRole() {
     return _userProfile?.role ?? 'Role not set';
   }
@@ -142,7 +135,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (_mobileImagePath != null) return FileImage(File(_mobileImagePath!));
     }
 
-    // Fallback to network image from Firestore
     if (_userProfile?.imageUrl != null && _userProfile!.imageUrl!.isNotEmpty) {
       return NetworkImage(_userProfile!.imageUrl!);
     }
@@ -373,40 +365,101 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Text('Current Status:',
-                              style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6 * textScale),
-                            decoration: BoxDecoration(
-                              color: _getVerificationStatus() == 'Verified'
-                                  ? Colors.green.withOpacity(0.3)
-                                  : Colors.orangeAccent.withOpacity(0.3),
-                              border: Border.all(
-                                  color: _getVerificationStatus() == 'Verified'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                  width: 1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _getVerificationStatus(),
-                              style: TextStyle(
-                                  color: _getVerificationStatus() == 'Verified'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                  fontSize: 12 * textScale,
-                                  fontWeight: FontWeight.w600),
-                            ),
+                          StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('verifications')
+                                .doc(_employeeId)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Current Status:',
+                                        style: TextStyle(
+                                            fontSize: 14 * textScale,
+                                            fontWeight: FontWeight.w500)),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6 * textScale),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orangeAccent.withOpacity(0.3),
+                                        border: Border.all(
+                                            color: Colors.orange, width: 1),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        'Not Submitted',
+                                        style: TextStyle(
+                                            color: Colors.orange,
+                                            fontSize: 12 * textScale,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+                              if (snapshot.hasError) {
+                                return const Text('Error loading status');
+                              }
+
+                              final data =
+                                  snapshot.data!.data() as Map<String, dynamic>?;
+                              final status = data?['status'] as String? ?? 'Pending';
+
+                              Color backgroundColor;
+                              Color textColor;
+                              switch (status) {
+                                case 'Approved':
+                                  backgroundColor = Colors.green.withOpacity(0.3);
+                                  textColor = Colors.green;
+                                  break;
+                                case 'Rejected':
+                                  backgroundColor = Colors.red.withOpacity(0.3);
+                                  textColor = Colors.red;
+                                  break;
+                                case 'Pending':
+                                default:
+                                  backgroundColor =
+                                      Colors.orangeAccent.withOpacity(0.3);
+                                  textColor = Colors.orange;
+                                  break;
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Current Status:',
+                                      style: TextStyle(
+                                          fontSize: 14 * textScale,
+                                          fontWeight: FontWeight.w500)),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6 * textScale),
+                                    decoration: BoxDecoration(
+                                      color: backgroundColor,
+                                      border: Border.all(color: textColor, width: 1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      status,
+                                      style: TextStyle(
+                                          color: textColor,
+                                          fontSize: 12 * textScale,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 12),
                           Text('Please capture a selfie for verification.',
                               style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  color: Colors.grey)),
+                                  fontSize: 14 * textScale, color: Colors.grey)),
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,

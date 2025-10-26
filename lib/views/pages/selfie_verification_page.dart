@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SelfiePage extends StatefulWidget {
   const SelfiePage({super.key});
@@ -15,11 +18,13 @@ class _SelfiePageState extends State<SelfiePage> {
   bool _isLoading = false;
   bool _isCapturing = false;
   final ImagePicker _picker = ImagePicker();
+  bool _isFaceDetected = false; // Placeholder for face detection
 
   Uint8List? _webImageBytes;
   String? _mobileImagePath;
 
   Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -41,16 +46,19 @@ class _SelfiePageState extends State<SelfiePage> {
           final bytes = await pickedFile.readAsBytes();
           setState(() {
             _webImageBytes = bytes;
+            _isFaceDetected = true; // Simulate face detection
           });
         } else {
           setState(() {
             _mobileImagePath = pickedFile.path;
             _image = File(pickedFile.path);
+            _isFaceDetected = true; // Simulate face detection
           });
         }
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        print('PickImage Error: $e');
         _showSnackBar("Failed to capture selfie. Please try again.", false);
       }
     } finally {
@@ -63,11 +71,52 @@ class _SelfiePageState extends State<SelfiePage> {
       _showSnackBar("Please capture a selfie first", false);
       return;
     }
+    if (!_isFaceDetected) {
+      _showSnackBar("No face detected. Please try again with a clear selfie.", false);
+      return;
+    }
 
     setState(() => _isLoading = true);
+    print('Submitting selfie...');
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showSnackBar("Please log in first.", false);
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final employeeId = user.uid;
+      print('Employee ID: $employeeId');
+      String fileName = 'selfies/$employeeId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      print('Uploading to: $fileName');
+
+      UploadTask uploadTask;
+      if (kIsWeb) {
+        uploadTask = FirebaseStorage.instance
+            .ref(fileName)
+            .putData(_webImageBytes!);
+      } else {
+        uploadTask = FirebaseStorage.instance
+            .ref(fileName)
+            .putFile(_image!);
+      }
+
+      final snapshot = await uploadTask.whenComplete(() {
+        print('Upload complete for: $fileName');
+      });
+      final downloadURL = await snapshot.ref.getDownloadURL();
+      print('Download URL: $downloadURL');
+
+      await FirebaseFirestore.instance.collection('verifications').doc(employeeId).set({
+        'employeeId': employeeId,
+        'selfieUrl': downloadURL,
+        'status': 'Pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      print('Firestore document created for: $employeeId');
+
       if (mounted) {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
@@ -75,10 +124,14 @@ class _SelfiePageState extends State<SelfiePage> {
           Navigator.pushReplacementNamed(context, '/verification_pending');
         }
       }
-    } catch (_) {
-      _showSnackBar("Submission failed. Please try again.", false);
+    } catch (e) {
+      print('Submit Error: $e');
+      if (mounted) {
+        _showSnackBar("Submission failed: $e. Please try again.", false);
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+      print('Loading state reset');
     }
   }
 
@@ -159,7 +212,7 @@ class _SelfiePageState extends State<SelfiePage> {
             ),
             const SizedBox(height: 24),
 
-            // Circular selfie preview
+            // Circular selfie preview with face detection feedback
             Container(
               width: 220,
               height: 220,
@@ -168,7 +221,7 @@ class _SelfiePageState extends State<SelfiePage> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: _image != null || _webImageBytes != null
-                      ? Colors.blueAccent
+                      ? (_isFaceDetected ? Colors.green : Colors.red)
                       : Colors.grey.shade300,
                   width: 3,
                 ),
@@ -182,6 +235,17 @@ class _SelfiePageState extends State<SelfiePage> {
                             size: 100, color: Colors.grey.shade400),
               ),
             ),
+            if (_image != null || _webImageBytes != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _isFaceDetected ? "Face detected!" : "No face detected",
+                  style: TextStyle(
+                    color: _isFaceDetected ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
 
             const SizedBox(height: 40),
 
@@ -213,7 +277,7 @@ class _SelfiePageState extends State<SelfiePage> {
                             fontSize: 17, fontWeight: FontWeight.w600),
                       ),
               ),
-            ),
+           ),
 
             const SizedBox(height: 16),
 

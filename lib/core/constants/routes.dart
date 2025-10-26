@@ -7,6 +7,7 @@ import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 import 'package:veriwork_mobile/views/pages/welcome_page.dart';
+import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart'; // Adjust path as needed
 
 class AppRoutes {
   static const String onboarding = '/';
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String verificationPending = '/verification_pending';
   static const String verificationSuccessful = '/verification_successful';
   static const String verificationRejected = '/verification_rejected';
+  static const String selfie = '/selfie'; // Add this route
 
   static Route<dynamic> routes(RouteSettings settings) {
     switch (settings.name) {

@@ -11,14 +11,15 @@ dependencies:
   flutter:
     sdk: flutter
 
+
   cupertino_icons: ^1.0.6
   lottie: ^3.3.2
   image_picker: ^1.0.7
   firebase_core: ^4.2.0
   cloud_firestore: 6.0.3   
   firebase_auth: ^6.1.1
-  provider: ^6.1.5+1
   firebase_storage: ^13.0.3
+  provider: ^6.1.5+1
   cached_network_image: ^3.4.1
 
 dev_dependencies:
@@ -43,4 +44,12 @@ flutter:
       fonts:
         - asset: assets/fonts/Unbounded-Regular.ttf
         - asset: assets/fonts/Unbounded-Bold.ttf
+          weight: 700
+    
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
           weight: 700

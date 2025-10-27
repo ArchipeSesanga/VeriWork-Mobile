@@ -17,14 +17,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final List<Map<String, String>> onboardingData = [
     {
       "title": "Verify Your Status",
-      "description":
-          "Quickly verify your employment status with secure authentication.",
+      "description": "Quickly verify your employment status with secure authentication.",
       "lottie": "assets/lottie/verify.json",
     },
     {
       "title": "Update Your Profile",
-      "description":
-          "Keep your profile up to date with the latest information.",
+      "description": "Keep your profile up to date with the latest information.",
       "lottie": "assets/lottie/update_profile.json",
     },
   ];
@@ -33,7 +31,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _nextPage() {
     if (isLastPage) {
-      _navigateToMainPage();
+      _navigateToNextScreen();
     } else {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
@@ -42,18 +40,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _skipToEnd() {
-    _pageController.animateToPage(
-      onboardingData.length - 1,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
-    );
+  void _skipToLogin() {
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Skip to Login
   }
 
-  void _navigateToMainPage() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-    );
+  void _navigateToNextScreen() {
+    // Adjust this based on your flow: /welcome or /login
+    Navigator.of(context).pushReplacementNamed(AppRoutes.welcome); // Default to Welcome
   }
 
   @override
@@ -77,15 +70,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
           ),
 
-          // Skip button
+          // Skip button (now goes to Login)
           if (!isLastPage)
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
-                },
+                onPressed: _skipToLogin,
                 child: const Text(
                   "Skip",
                   style: TextStyle(

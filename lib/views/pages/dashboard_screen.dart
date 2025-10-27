@@ -10,6 +10,7 @@ import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart'
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart'; // Added for navigation
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -63,16 +64,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       try {
         final authService = Provider.of<AuthService>(context, listen: false);
 
-        // TODO: Upload image to Firebase Storage and update Firestore profile
+        // Upload image and update profile
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
-          setState(() => _webImageBytes = bytes);
+          await authService.uploadProfileImage(bytes);
+          final updatedProfile = await authService.getUserProfile();
+          setState(() {
+            _webImageBytes = bytes;
+            _userProfile = updatedProfile;
+          });
         } else {
-          setState(() => _mobileImagePath = pickedFile.path);
+          final file = File(pickedFile.path);
+          await authService.uploadProfileImage(file as Uint8List);
+          final updatedProfile = await authService.getUserProfile();
+          setState(() {
+            _mobileImagePath = pickedFile.path;
+            _userProfile = updatedProfile;
+          });
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile image updated')),
+          const SnackBar(content: Text('Profile image updated successfully')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -125,7 +137,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String _getRole() {
-    // ✅ FIXED: Added fallback string to avoid syntax error
     return _userProfile?.role ?? 'Role not set';
   }
 
@@ -176,7 +187,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.logout),
-                    onPressed: () => viewModel.logoutUser(context),
+                    onPressed: () async {
+                      await viewModel.logoutUser(context);
+                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                    },
                     tooltip: 'Logout',
                   ),
                   GestureDetector(
@@ -208,16 +222,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               shape: BoxShape.circle,
                               border: Border.all(
                                   color: const Color(0xFF5B7CB1), width: 3),
-                              image: _userProfile?.imageUrl != null
-                                  ? DecorationImage(
-                                      image:
-                                          NetworkImage(_userProfile!.imageUrl!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const DecorationImage(
-                                      image: AssetImage('assets/profile.jpg'),
-                                      fit: BoxFit.cover,
-                                    ),
+                              image: DecorationImage(
+                                image: _getImageProvider(),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
@@ -339,7 +347,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                // TODO: Navigate to Edit Profile screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProfileView(),
+                                  ),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),

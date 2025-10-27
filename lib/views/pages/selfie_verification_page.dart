@@ -155,185 +155,191 @@ class _SelfiePageState extends State<SelfiePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: Center(
-          child: Image.asset(
-            'assets/images/Logo.png',
-            height: 40,
-            fit: BoxFit.contain,
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, '/dashboard'); // Back to Dashboard
+        return false; // Prevent default back behavior
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.blue[700],
+          title: Center(
+            child: Image.asset(
+              'assets/images/Logo.png',
+              height: 40,
+              fit: BoxFit.contain,
+            ),
           ),
-        ),
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
-                tooltip: 'Logout',
-              ),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: kIsWeb
-                      ? (_webImageBytes != null
-                          ? MemoryImage(_webImageBytes!)
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>)
-                      : (_mobileImagePath != null
-                          ? FileImage(File(_mobileImagePath!))
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>),
-                  onBackgroundImageError: (_, __) {},
+          actions: [
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: _logout,
+                  tooltip: 'Logout',
                 ),
-              ),
-              const SizedBox(width: 12),
-            ],
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Take Photo",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              "Take a clear selfie for verification",
-              style: TextStyle(fontSize: 15, color: Colors.black54),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-
-            // Circular selfie preview with face detection feedback
-            Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _image != null || _webImageBytes != null
-                      ? (_isFaceDetected ? Colors.green : Colors.red)
-                      : Colors.grey.shade300,
-                  width: 3,
-                ),
-              ),
-              child: ClipOval(
-                child: _image != null
-                    ? Image.file(_image!, fit: BoxFit.cover)
-                    : _webImageBytes != null
-                        ? Image.memory(_webImageBytes!, fit: BoxFit.cover)
-                        : Icon(Icons.person_outline,
-                            size: 100, color: Colors.grey.shade400),
-              ),
-            ),
-            if (_image != null || _webImageBytes != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _isFaceDetected ? "Face detected!" : "No face detected",
-                  style: TextStyle(
-                    color: _isFaceDetected ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: CircleAvatar(
+                    radius: 20,
+                    backgroundImage: kIsWeb
+                        ? (_webImageBytes != null
+                            ? MemoryImage(_webImageBytes!)
+                            : const AssetImage('assets/profile_banner.png')
+                                as ImageProvider<Object>)
+                        : (_mobileImagePath != null
+                            ? FileImage(File(_mobileImagePath!))
+                            : const AssetImage('assets/profile_banner.png')
+                                as ImageProvider<Object>),
+                    onBackgroundImageError: (_, __) {},
                   ),
                 ),
-              ),
-
-            const SizedBox(height: 40),
-
-            // Capture Selfie Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isCapturing ? null : _pickImage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isCapturing
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        "Capture Selfie",
-                        style: TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w600),
-                      ),
-              ),
-           ),
-
-            const SizedBox(height: 16),
-
-            // Submit Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitSelfie,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        "Submit",
-                        style: TextStyle(
-                            fontSize: 17, fontWeight: FontWeight.w600),
-                      ),
-              ),
+                const SizedBox(width: 12),
+              ],
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          } else {
-            Navigator.pushReplacementNamed(context, '/profile');
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: "Home",
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Take Photo",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                "Take a clear selfie for verification",
+                style: TextStyle(fontSize: 15, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // Circular selfie preview with face detection feedback
+              Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _image != null || _webImageBytes != null
+                        ? (_isFaceDetected ? Colors.green : Colors.red)
+                        : Colors.grey.shade300,
+                    width: 3,
+                  ),
+                ),
+                child: ClipOval(
+                  child: _image != null
+                      ? Image.file(_image!, fit: BoxFit.cover)
+                      : _webImageBytes != null
+                          ? Image.memory(_webImageBytes!, fit: BoxFit.cover)
+                          : Icon(Icons.person_outline,
+                              size: 100, color: Colors.grey.shade400),
+                ),
+              ),
+              if (_image != null || _webImageBytes != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    _isFaceDetected ? "Face detected!" : "No face detected",
+                    style: TextStyle(
+                      color: _isFaceDetected ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 40),
+
+              // Capture Selfie Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isCapturing ? null : _pickImage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3B82F6),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isCapturing
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Capture Selfie",
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submitSelfie,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Submit",
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Profile",
-          ),
-        ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          selectedItemColor: Colors.blueAccent,
+          unselectedItemColor: Colors.grey,
+          currentIndex: 0,
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.pushReplacementNamed(context, '/dashboard');
+            } else if (index == 1) {
+              Navigator.pushReplacementNamed(context, '/profile');
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: "Home",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              label: "Profile",
+            ),
+          ],
+        ),
       ),
     );
   }

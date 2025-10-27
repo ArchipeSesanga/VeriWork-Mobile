@@ -18,7 +18,7 @@ class AppRoutes {
   static const String verificationPending = '/verification_pending';
   static const String verificationSuccessful = '/verification_successful';
   static const String verificationRejected = '/verification_rejected';
-  static const String selfie = '/selfie'; // Add this route
+  static const String selfie = '/selfie'; // Ensure this is defined
 
   static Route<dynamic> routes(RouteSettings settings) {
     switch (settings.name) {
@@ -53,6 +53,10 @@ class AppRoutes {
       case verificationRejected:
         return MaterialPageRoute(
           builder: (context) => const VerificationRejectedView(),
+        );
+      case selfie:
+        return MaterialPageRoute(
+          builder: (context) => const SelfiePage(),
         );
       default:
         return MaterialPageRoute(

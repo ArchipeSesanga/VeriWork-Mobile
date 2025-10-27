@@ -19,7 +19,6 @@ class ProfileModel {
   String? city;
   String? country;
   List<String>? documentUrls;
-
   String? gender;
   DateTime? hireDate;
   String? postalCode;
@@ -41,12 +40,16 @@ class ProfileModel {
     this.verificationStatus,
     this.verificationDate,
     this.address,
+    this.city,
+    this.country,
+    this.documentUrls,
     this.gender,
     this.hireDate,
     this.postalCode,
     this.province,
   });
 
+  // Convert Dart object to Firestore map
   Map<String, dynamic> toMap() {
     return {
       'DepartmentId': departmentId,
@@ -56,21 +59,27 @@ class ProfileModel {
       'Surname': surname,
       'Password': password,
       'Phone': phone,
-      'PhotoUrl': imageUrl, // Note: Firestore uses PhotoUrl, not ImageUrl
+      'PhotoUrl': imageUrl, // Firestore uses PhotoUrl
       'Role': role,
       'EmployeeId': employeeId,
       'Position': position,
+      'IsVerified': isVerified,
+      'VerificationStatus': verificationStatus,
+      'VerificationDate': verificationDate != null
+          ? Timestamp.fromDate(verificationDate!)
+          : null,
       'Address': address,
       'City': city,
       'Country': country,
       'DocumentUrls': documentUrls,
       'Gender': gender,
-      'HireDate': hireDate,
+      'HireDate': hireDate != null ? Timestamp.fromDate(hireDate!) : null,
       'PostalCode': postalCode,
       'Province': province,
     };
   }
 
+  // Convert Firestore map to Dart object
   factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
       departmentId: map['DepartmentId'],
@@ -80,25 +89,31 @@ class ProfileModel {
       surname: map['Surname'],
       password: map['Password'],
       phone: map['Phone'],
-      imageUrl: map['PhotoUrl'], // Firestore uses PhotoUrl
+      imageUrl: map['PhotoUrl'],
       role: map['Role'],
       employeeId: map['EmployeeId'],
       position: map['Position'],
+      isVerified: map['IsVerified'] ?? false,
+      verificationStatus: map['VerificationStatus'] ?? 'Pending Review',
+      verificationDate: map['VerificationDate'] != null
+          ? (map['VerificationDate'] as Timestamp).toDate()
+          : null,
       address: map['Address'],
+      city: map['City'],
+      country: map['Country'],
+      documentUrls: map['DocumentUrls'] != null
+          ? List<String>.from(map['DocumentUrls'])
+          : [],
       gender: map['Gender'],
       hireDate: map['HireDate'] != null
           ? (map['HireDate'] as Timestamp).toDate()
           : null,
       postalCode: map['PostalCode'],
       province: map['Province'],
-      isVerified: map['IsVerified'] ?? false,
-      verificationStatus: map['VerificationStatus'] ?? 'Pending Review',
-      verificationDate: map['VerificationDate'] != null
-          ? (map['VerificationDate'] as Timestamp).toDate()
-          : null,
     );
   }
 
+  // Create a copy with updated fields
   ProfileModel copyWith({
     String? departmentId,
     String? email,
@@ -118,8 +133,6 @@ class ProfileModel {
     String? city,
     String? country,
     List<String>? documentUrls,
-    String? emergencyName,
-    String? emergencyPhone,
     String? gender,
     DateTime? hireDate,
     String? postalCode,
@@ -141,6 +154,9 @@ class ProfileModel {
       verificationStatus: verificationStatus ?? this.verificationStatus,
       verificationDate: verificationDate ?? this.verificationDate,
       address: address ?? this.address,
+      city: city ?? this.city,
+      country: country ?? this.country,
+      documentUrls: documentUrls ?? this.documentUrls,
       gender: gender ?? this.gender,
       hireDate: hireDate ?? this.hireDate,
       postalCode: postalCode ?? this.postalCode,

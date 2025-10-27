@@ -43,7 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading user profile: $e');
+        debugPrint('Error loading user profile: $e');
       }
       if (mounted) {
         setState(() {
@@ -63,18 +63,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       try {
         final authService = Provider.of<AuthService>(context, listen: false);
 
-        // TODO: Implement image upload to storage and get download URL
-        // For now, we'll just update the local state
+        // TODO: Upload image to Firebase Storage and update Firestore profile
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
           setState(() => _webImageBytes = bytes);
         } else {
           setState(() => _mobileImagePath = pickedFile.path);
         }
-
-        // After uploading to storage, update Firestore:
-        // String downloadUrl = await uploadImageToStorage(...);
-        // await authService.updateProfileImage(downloadUrl);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile image updated')),
@@ -88,9 +83,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
+
     setState(() => _selectedIndex = index);
 
-    if (index == 1 && _selectedIndex != 1) {
+    if (index == 1) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ProfileView()),
@@ -128,6 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String _getRole() {
+    // ✅ FIXED: Added fallback string to avoid syntax error
     return _userProfile?.role ?? 'Role not set';
   }
 
@@ -136,10 +134,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   ImageProvider<Object> _getImageProvider() {
-    if (kIsWeb) {
-      if (_webImageBytes != null) return MemoryImage(_webImageBytes!);
-    } else {
-      if (_mobileImagePath != null) return FileImage(File(_mobileImagePath!));
+    if (kIsWeb && _webImageBytes != null) {
+      return MemoryImage(_webImageBytes!);
+    } else if (!kIsWeb && _mobileImagePath != null) {
+      return FileImage(File(_mobileImagePath!));
     }
 
     // Fallback to network image from Firestore
@@ -152,8 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    LoginViewModel viewModel =
-        Provider.of<LoginViewModel>(context, listen: false);
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -342,7 +339,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                // Navigate to edit profile screen
+                                // TODO: Navigate to Edit Profile screen
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),
@@ -383,8 +380,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 horizontal: 12, vertical: 6 * textScale),
                             decoration: BoxDecoration(
                               color: _getVerificationStatus() == 'Verified'
-                                  ? Colors.green.withOpacity(0.3)
-                                  : Colors.orangeAccent.withOpacity(0.3),
+                                  ? Colors.green.withValues(alpha: 0.3)
+                                  : Colors.orangeAccent.withValues(alpha: 0.3),
                               border: Border.all(
                                   color: _getVerificationStatus() == 'Verified'
                                       ? Colors.green

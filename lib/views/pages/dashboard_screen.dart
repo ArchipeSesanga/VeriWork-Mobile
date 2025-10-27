@@ -10,8 +10,6 @@ import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart'
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,7 +24,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _mobileImagePath;
   ProfileModel? _userProfile;
   bool _isLoading = true;
-  final String _employeeId = FirebaseAuth.instance.currentUser?.uid ?? "unknown";
 
   @override
   void initState() {
@@ -46,7 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading user profile: $e');
+        debugPrint('Error loading user profile: $e');
       }
       if (mounted) {
         setState(() {
@@ -66,6 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       try {
         final authService = Provider.of<AuthService>(context, listen: false);
 
+        // TODO: Upload image to Firebase Storage and update Firestore profile
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
           setState(() => _webImageBytes = bytes);
@@ -85,9 +83,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
+
     setState(() => _selectedIndex = index);
 
-    if (index == 1 && _selectedIndex != 1) {
+    if (index == 1) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ProfileView()),
@@ -120,7 +120,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _userProfile?.isVerified ?? false;
   }
 
+  String _getVerificationStatus() {
+    return _userProfile?.verificationStatus ?? 'Pending Review';
+  }
+
   String _getRole() {
+    // ✅ FIXED: Added fallback string to avoid syntax error
     return _userProfile?.role ?? 'Role not set';
   }
 
@@ -129,12 +134,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   ImageProvider<Object> _getImageProvider() {
-    if (kIsWeb) {
-      if (_webImageBytes != null) return MemoryImage(_webImageBytes!);
-    } else {
-      if (_mobileImagePath != null) return FileImage(File(_mobileImagePath!));
+    if (kIsWeb && _webImageBytes != null) {
+      return MemoryImage(_webImageBytes!);
+    } else if (!kIsWeb && _mobileImagePath != null) {
+      return FileImage(File(_mobileImagePath!));
     }
 
+    // Fallback to network image from Firestore
     if (_userProfile?.imageUrl != null && _userProfile!.imageUrl!.isNotEmpty) {
       return NetworkImage(_userProfile!.imageUrl!);
     }
@@ -144,8 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    LoginViewModel viewModel =
-        Provider.of<LoginViewModel>(context, listen: false);
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -334,7 +339,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                // Navigate to edit profile screen
+                                // TODO: Navigate to Edit Profile screen
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),
@@ -365,101 +370,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          StreamBuilder<DocumentSnapshot>(
-                            stream: FirebaseFirestore.instance
-                                .collection('verifications')
-                                .doc(_employeeId)
-                                .snapshots(),
-                            builder: (context, snapshot) {
-                              if (!snapshot.hasData) {
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Current Status:',
-                                        style: TextStyle(
-                                            fontSize: 14 * textScale,
-                                            fontWeight: FontWeight.w500)),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6 * textScale),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orangeAccent.withOpacity(0.3),
-                                        border: Border.all(
-                                            color: Colors.orange, width: 1),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        'Not Submitted',
-                                        style: TextStyle(
-                                            color: Colors.orange,
-                                            fontSize: 12 * textScale,
-                                            fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                return const Text('Error loading status');
-                              }
-
-                              final data =
-                                  snapshot.data!.data() as Map<String, dynamic>?;
-                              final status = data?['status'] as String? ?? 'Pending';
-
-                              Color backgroundColor;
-                              Color textColor;
-                              switch (status) {
-                                case 'Approved':
-                                  backgroundColor = Colors.green.withOpacity(0.3);
-                                  textColor = Colors.green;
-                                  break;
-                                case 'Rejected':
-                                  backgroundColor = Colors.red.withOpacity(0.3);
-                                  textColor = Colors.red;
-                                  break;
-                                case 'Pending':
-                                default:
-                                  backgroundColor =
-                                      Colors.orangeAccent.withOpacity(0.3);
-                                  textColor = Colors.orange;
-                                  break;
-                              }
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Current Status:',
-                                      style: TextStyle(
-                                          fontSize: 14 * textScale,
-                                          fontWeight: FontWeight.w500)),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6 * textScale),
-                                    decoration: BoxDecoration(
-                                      color: backgroundColor,
-                                      border: Border.all(color: textColor, width: 1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      status,
-                                      style: TextStyle(
-                                          color: textColor,
-                                          fontSize: 12 * textScale,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                          Text('Current Status:',
+                              style: TextStyle(
+                                  fontSize: 14 * textScale,
+                                  fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6 * textScale),
+                            decoration: BoxDecoration(
+                              color: _getVerificationStatus() == 'Verified'
+                                  ? Colors.green.withValues(alpha: 0.3)
+                                  : Colors.orangeAccent.withValues(alpha: 0.3),
+                              border: Border.all(
+                                  color: _getVerificationStatus() == 'Verified'
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  width: 1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _getVerificationStatus(),
+                              style: TextStyle(
+                                  color: _getVerificationStatus() == 'Verified'
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  fontSize: 12 * textScale,
+                                  fontWeight: FontWeight.w600),
+                            ),
                           ),
                           const SizedBox(height: 12),
                           Text('Please capture a selfie for verification.',
                               style: TextStyle(
-                                  fontSize: 14 * textScale, color: Colors.grey)),
+                                  fontSize: 14 * textScale,
+                                  color: Colors.grey)),
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,

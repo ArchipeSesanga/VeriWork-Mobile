@@ -6,62 +6,75 @@ class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  // get the current logged in user
+  /// Get the currently logged-in Firebase user
   User getCurrentUser() {
-    User user = firebaseAuth.currentUser!;
-    return user;
+    return firebaseAuth.currentUser!;
   }
 
-  Future<bool> loginUser({String? email, String? password}) async {
-    var res = await firebaseAuth.signInWithEmailAndPassword(
-      email: '$email',
-      password: '$password',
-    );
-
-    if (res.user != null) {
-      // account login was successful
-      return true;
-    } else {
-      // account login was not successful
-      return false;
+  /// Login user with email and password
+  Future<bool> loginUser(
+      {required String email, required String password}) async {
+    try {
+      final res = await firebaseAuth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      return res.user != null;
+    } on FirebaseAuthException catch (e) {
+      throw handleFirebaseAuthError(e.code);
     }
   }
 
-  forgotPassword(String email) async {
-    await firebaseAuth.sendPasswordResetEmail(email: email);
+  /// Forgot password (send reset email)
+  Future<void> forgotPassword(String email) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      throw handleFirebaseAuthError(e.code);
+    }
   }
 
-  logOut() async {
+  /// Log out the current user
+  Future<void> logOut() async {
     await firebaseAuth.signOut();
   }
 
-  // Fetch user profile - combine Auth data with minimal Firestore for extended fields
+  /// Fetch user profile - combines Firebase Auth and Firestore data
   Future<ProfileModel?> getUserProfile() async {
     final user = getCurrentUser();
 
     try {
       await user.reload();
-      final currentUser = getCurrentUser();
+      final doc = await firestore.collection('employees').doc(user.uid).get();
 
-      // Create basic profile from Auth data
+      if (!doc.exists) return null;
+      final data = doc.data()!;
+
       return ProfileModel(
-        employeeId: currentUser.uid,
-        email: currentUser.email,
-        name: currentUser.displayName?.split(' ').first, // Extract first name
-        surname: currentUser.displayName?.split(' ').last, // Extract last name
-        imageUrl: currentUser.photoURL,
-        phone: currentUser.phoneNumber,
-        isVerified: currentUser.emailVerified,
-        // Note: Other fields like departmentId, role, position would need
-        // to be stored elsewhere or use custom claims
+        employeeId: user.uid,
+        email: user.email ?? data['Email'],
+        name: user.displayName?.split(' ').first ?? data['Name'],
+        surname: user.displayName?.split(' ').last ?? data['Surname'],
+        imageUrl: user.photoURL ??
+            (data['DocumentUrls'] != null
+                ? (data['DocumentUrls'] as List).isNotEmpty
+                    ? data['DocumentUrls'][0]
+                    : null
+                : null),
+        phone: user.phoneNumber ?? data['Phone'],
+        departmentId: data['DepartmentId'],
+        isVerified: user.emailVerified,
+        role: data['Role'],
+        address: data['Address'],
+        city: data['City'],
+        country: data['Country'],
       );
-    } catch (_) {
+    } catch (e) {
       rethrow;
     }
-    return null;
   }
 
-  // Update user profile in Firebase Auth
+  /// Update user profile in Firebase Auth
   Future<void> updateUserProfile({
     String? displayName,
     String? photoURL,
@@ -77,17 +90,17 @@ class AuthService {
         await user.updatePhotoURL(photoURL);
       }
       if (phoneNumber != null) {
-        // Note: Phone number update requires reauthentication
+        // Note: Updating phone number requires reauthentication.
         // await user.updatePhoneNumber(phoneNumber);
       }
 
       await user.reload();
-    } catch (_) {
-      rethrow;
+    } on FirebaseAuthException catch (e) {
+      throw handleFirebaseAuthError(e.code);
     }
   }
 
-  // Update user email
+  /// Update user's email address
   Future<void> updateEmail(String newEmail, String password) async {
     final user = getCurrentUser();
 
@@ -99,12 +112,12 @@ class AuthService {
 
       await user.verifyBeforeUpdateEmail(newEmail.trim());
       await user.reload();
-    } catch (_) {
-      rethrow;
+    } on FirebaseAuthException catch (e) {
+      throw handleFirebaseAuthError(e.code);
     }
   }
 
-  // Send email verification
+  /// Send email verification to the current user
   Future<void> sendEmailVerification() async {
     final user = getCurrentUser();
     if (!user.emailVerified) {
@@ -112,33 +125,37 @@ class AuthService {
     }
   }
 
-  // Error Messages Handeler
+  /// Optional: Register new user (for signup screens)
+  Future<User?> registerUser(String email, String password) async {
+    try {
+      final res = await firebaseAuth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      return res.user;
+    } on FirebaseAuthException catch (e) {
+      throw handleFirebaseAuthError(e.code);
+    }
+  }
+
+  /// Error message handler for FirebaseAuth exceptions
   String handleFirebaseAuthError(String e) {
-    if (e.contains("ERROR_WEAK_PASSWORD")) {
-      return "Password is too weak";
+    if (e.contains("weak-password")) {
+      return "Password is too weak.";
     } else if (e.contains("invalid-email")) {
-      return "Invalid Email";
-    } else if (e.contains("ERROR_EMAIL_ALREADY_IN_USE") ||
-        e.contains('email-already-in-use')) {
-      return "The email address is already in use by another account.";
-    } else if (e.contains("ERROR_NETWORK_REQUEST_FAILED")) {
-      return "Network error occured!";
-    } else if (e.contains("ERROR_USER_NOT_FOUND") ||
-        e.contains('firebase_auth/user-not-found')) {
-      return "Invalid credentials.";
-    } else if (e.contains("ERROR_WRONG_PASSWORD") ||
-        e.contains('wrong-password')) {
-      return "Invalid credentials.";
-    } else if (e.contains("firebase_auth/invalid-credentials") ||
-        e.contains('wrong-password')) {
-      return "Invalid credentials.";
-    } else if (e.contains('firebase_auth/requires-recent-login')) {
-      return 'This operation is sensitive and requires recent authentication.'
-          ' Log in again before retrying this request.';
-    } else if (e.contains('firebase_auth/network-request-failed')) {
-      return 'Please check your internet connection.';
+      return "Invalid email address.";
+    } else if (e.contains("email-already-in-use")) {
+      return "This email is already used by another account.";
+    } else if (e.contains("network-request-failed")) {
+      return "Please check your internet connection.";
+    } else if (e.contains("user-not-found")) {
+      return "No user found with these credentials.";
+    } else if (e.contains("wrong-password")) {
+      return "Incorrect password.";
+    } else if (e.contains("requires-recent-login")) {
+      return "Please log in again before performing this action.";
     } else {
-      return e;
+      return "Authentication error: $e";
     }
   }
 }

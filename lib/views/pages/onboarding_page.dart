@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/views/pages/welcome_page.dart';
 import 'package:veriwork_mobile/widgets/onboarding_items.dart';
-import 'package:veriwork_mobile/widgets/my_button.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -18,12 +18,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
     {
       "title": "Verify Your Status",
       "description":
-          "Quickly verify your employment status with secure authentication",
+          "Quickly verify your employment status with secure authentication.",
       "lottie": "assets/lottie/verify.json",
     },
     {
       "title": "Update Your Profile",
-      "description": "Keep your profile up to date with the latest information",
+      "description":
+          "Keep your profile up to date with the latest information.",
       "lottie": "assets/lottie/update_profile.json",
     },
   ];
@@ -35,7 +36,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       _navigateToMainPage();
     } else {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
       );
     }
@@ -44,14 +45,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void _skipToEnd() {
     _pageController.animateToPage(
       onboardingData.length - 1,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
     );
   }
 
   void _navigateToMainPage() {
-    // TODO: Replace with actual navigation
-    const Text('Navigate to main page');
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
   }
 
   @override
@@ -62,35 +64,39 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: Stack(
         children: [
-          // PNG Background
+          // Background image
           Positioned.fill(
             child: Image.asset(
-              "assets/images/background.png", // <-- use your PNG
+              "assets/images/background.png",
               fit: BoxFit.cover,
             ),
           ),
 
-          // Skip button (top-right)
+          // Skip button
           if (!isLastPage)
             Positioned(
-              top: 40, // adjust for status bar
+              top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
-                onPressed: _skipToEnd,
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+                },
                 child: const Text(
-                  'Skip',
+                  "Skip",
                   style: TextStyle(
-                    color: Colors.white, // White so it's visible on bg
-                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
               ),
             ),
 
-          // Main content
           SafeArea(
             child: Column(
               children: [
@@ -99,52 +105,53 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) {
-                      setState(() {
-                        currentIndex = index;
-                      });
+                      setState(() => currentIndex = index);
                     },
                     itemCount: onboardingData.length,
                     itemBuilder: (context, index) {
                       final item = onboardingData[index];
-                      return OnboardingItem(
-                        title: item["title"]!,
-                        description: item["description"]!,
-                        lottieAsset: item["lottie"]!,
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.08,
+                          vertical: size.height * 0.05,
+                        ),
+                        child: OnboardingItem(
+                          title: item["title"]!,
+                          description: item["description"]!,
+                          lottieAsset: item["lottie"]!,
+                        ),
                       );
                     },
                   ),
                 ),
 
-                // Page indicators
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      onboardingData.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 8,
-                        width: currentIndex == index ? 24 : 8,
-                        decoration: BoxDecoration(
-                          color: currentIndex == index
-                              ? Colors.blue
-                              : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    onboardingData.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 8,
+                      width: currentIndex == index ? 24 : 8,
+                      decoration: BoxDecoration(
+                        color: currentIndex == index
+                            ? Colors.blue
+                            : Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
 
-                // Bottom navigation
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Back button (visible after first page)
+                      // Back button
                       if (currentIndex > 0)
                         GestureDetector(
                           onTap: () {
@@ -155,45 +162,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           },
                           child: Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.arrow_back_rounded,
-                              color: Colors.black87,
+                              color: Colors.blue,
                             ),
                           ),
                         )
                       else
-                        const SizedBox(width: 48), // Spacer
-                      // Next/Get Started button
-                      isLastPage
-                          ? MyButton(
-                              title: 'Get Started',
-                              onTap: () {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                    builder: (context) => const WelcomeScreen(),
-                                  ),
-                                );
-                              },
-                              color: Colors.blue,
-                            )
-                          : GestureDetector(
-                              onTap: _nextPage,
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                        const SizedBox(width: 48),
+
+                      GestureDetector(
+                        onTap: _nextPage,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

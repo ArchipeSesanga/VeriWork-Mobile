@@ -1,9 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/core/constants/app_theme.dart';
+import 'package:veriwork_mobile/firebase_options.dart';
+import 'package:veriwork_mobile/core/utils/firebase.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
-import 'package:veriwork_mobile/views/employee/profile_view.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 
@@ -12,19 +24,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Onboarding Demo',
-      initialRoute: '/profile & Settings',  // Launch directly to ProfileView
-      routes: {
-        '/': (context) => const OnboardingPage(),
-        '/login': (context) => const LoginScreen(),
-        // '/Dashboard': (context) => DashboardView(),
-        '/profile & Settings': (context) => const ProfileView(),
-        
-      },
-      theme: ThemeData(primarySwatch: Colors.blue),
-      // Removed 'home' to avoid conflict with initialRoute
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => LoginViewModel()),
+        ChangeNotifierProvider(create: (context) => ForgotPassViewModel()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'VeriWork',
+        theme: AppTheme.lightTheme,
+        home: StreamBuilder(
+          stream: firebaseAuth.authStateChanges(),
+          builder: (context, snapshot) {
+            // check if user signed in
+            if (snapshot.hasData) {
+              return const DashboardScreen();
+            } else {
+              // user not loggedin
+              return const OnboardingPage();
+            }
+          },
+        ),
+        onGenerateRoute: AppRoutes.routes,
+      ),
     );
   }
 }

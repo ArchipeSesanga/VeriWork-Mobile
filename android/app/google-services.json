@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "902233679227",
+    "project_id": "veriwork-database",
+    "storage_bucket": "veriwork-database.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902233679227:android:06ffae461b14d100a049de",
+        "android_client_info": {
+          "package_name": "com.example.veriwork_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMojxtxSMKCNx2wlpBdWOgbQrDCD4NYoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/core/utils/firebase.dart';
 import 'package:veriwork_mobile/widgets/showInSnackBar.dart';
+import 'package:veriwork_mobile/widgets/showIn_snackbar.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();

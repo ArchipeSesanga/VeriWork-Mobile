@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
-import 'package:veriwork_mobile/views/pages/welcome_page.dart';
 import 'package:veriwork_mobile/widgets/onboarding_items.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -33,7 +32,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _nextPage() {
     if (isLastPage) {
-      _navigateToMainPage();
+      _navigateToWelcome();
     } else {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
@@ -42,10 +41,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _navigateToMainPage() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-    );
+  void _navigateToWelcome() {
+    print('Onboarding → Welcome');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+  }
+
+  void _skipToLogin() {
+    print('Skip → Login');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
   @override
@@ -61,7 +64,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background image
+          // Background
           Positioned.fill(
             child: Image.asset(
               "assets/images/background.png",
@@ -69,15 +72,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
           ),
 
-          // Skip button
+          // Skip Button (only on non-last pages)
           if (!isLastPage)
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
-                },
+                onPressed: _skipToLogin,
                 child: const Text(
                   "Skip",
                   style: TextStyle(
@@ -92,7 +93,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           SafeArea(
             child: Column(
               children: [
-                // Page content
+                // Page Content
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
@@ -117,6 +118,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   ),
                 ),
 
+                // Dots Indicator
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
@@ -137,13 +139,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
                 const SizedBox(height: 24),
 
+                // Back + Next Buttons
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Back button
+                      // Back
                       if (currentIndex > 0)
                         GestureDetector(
                           onTap: () {
@@ -167,6 +170,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       else
                         const SizedBox(width: 48),
 
+                      // Next / Finish
                       GestureDetector(
                         onTap: _nextPage,
                         child: Container(

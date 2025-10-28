@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_pending_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_rejected.dart';
@@ -7,9 +8,10 @@ import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 import 'package:veriwork_mobile/views/pages/welcome_page.dart';
-import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart'; // Adjust path as needed
+import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 
 class AppRoutes {
+  // ── ROUTE NAMES ─────────────────────────────────────────────────────
   static const String onboarding = '/';
   static const String welcome = '/welcome';
   static const String login = '/login';
@@ -18,50 +20,40 @@ class AppRoutes {
   static const String verificationPending = '/verification_pending';
   static const String verificationSuccessful = '/verification_successful';
   static const String verificationRejected = '/verification_rejected';
-  static const String selfie = '/selfie'; // Ensure this is defined
+  static const String selfie = '/selfie';
 
-  static Route<dynamic> routes(RouteSettings settings) {
+  static RouteFactory? get routes => null;
+
+  // ── ROUTE BUILDER ───────────────────────────────────────────────────
+  static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case onboarding:
-        return MaterialPageRoute(
-          builder: (context) => const OnboardingPage(),
-        );
+        return _page(const OnboardingPage());
       case welcome:
-        return MaterialPageRoute(
-          builder: (context) => const WelcomeScreen(),
-        );
+        return _page(const WelcomeScreen());
       case login:
-        return MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        );
+        return _page(const LoginScreen());
       case dashboard:
-        return MaterialPageRoute(
-          builder: (context) => const DashboardScreen(),
-        );
+        return _page(const DashboardScreen());
       case profileSettings:
-        return MaterialPageRoute(
-          builder: (context) => const ProfileView(),
-        );
+        return _page(const ProfileView());
       case verificationPending:
-        return MaterialPageRoute(
-          builder: (context) => const VerificationPendingView(),
-        );
+        return _page(const VerificationPendingView());
       case verificationSuccessful:
-        return MaterialPageRoute(
-          builder: (context) => const VerificationSuccessfulView(),
-        );
+        return _page(const VerificationSuccessfulView());
       case verificationRejected:
-        return MaterialPageRoute(
-          builder: (context) => const VerificationRejectedView(),
-        );
+        return _page(const VerificationRejectedView());
       case selfie:
-        return MaterialPageRoute(
-          builder: (context) => const SelfiePage(),
-        );
+        return _page(const SelfiePage());
+
       default:
-        return MaterialPageRoute(
-          builder: (context) => const OnboardingPage(),
-        );
+        // Fallback – never hit if you use the constants
+        return _page(const OnboardingPage());
     }
+  }
+
+  // Helper – keeps the switch clean
+  static MaterialPageRoute _page(Widget child) {
+    return MaterialPageRoute(builder: (_) => child);
   }
 }

@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
-import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -36,13 +35,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error loading user profile: $e');
-      }
+      if (kDebugMode) debugPrint('Error loading user profile: $e');
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load profile: $e')),
         );
@@ -51,77 +46,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
-
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false,
-      );
-    }
+    print('Dashboard → Logout → Login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged out')),
+    );
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
-  String _getFullName() {
-    if (_userProfile == null) return 'Loading...';
-    return '${_userProfile?.name ?? ''} ${_userProfile?.surname ?? ''}'.trim();
+  void _goToEditProfile() {
+    print('Dashboard → Edit Profile');
+    Navigator.pushNamed(context, AppRoutes.profileSettings);
   }
 
-  String _getEmployeeId() {
-    return _userProfile?.employeeId ?? 'Employee ID: Not Set';
+  void _goToSelfie() {
+    print('Dashboard → Capture Selfie');
+    Navigator.pushNamed(context, AppRoutes.selfie);
   }
 
-  String _getPosition() {
-    return _userProfile?.position ?? 'Position not set';
-  }
+  String _getFullName() =>
+      '${_userProfile?.name ?? ''} ${_userProfile?.surname ?? ''}'
+              .trim()
+              .isEmpty
+          ? 'Loading...'
+          : '${_userProfile!.name} ${_userProfile!.surname}';
 
-  String _getDepartment() {
-    return _userProfile?.departmentId ?? 'Department not set';
-  }
-
-  String _getEmail() {
-    return _userProfile?.email ?? 'Email not set';
-  }
-
-  bool _isVerified() {
-    return _userProfile?.isVerified ?? false;
-  }
-
-  String _getVerificationStatus() {
-    return _userProfile?.verificationStatus ?? 'Pending Review';
-  }
-
-  String _getRole() {
-    // ✅ FIXED: Added fallback string to avoid syntax error
-    return _userProfile?.role ?? 'Role not set';
-  }
-
-  String _getPhone() {
-    return _userProfile?.phone ?? 'Phone not set';
-  }
+  String _getEmployeeId() => _userProfile?.employeeId ?? 'Employee ID: Not Set';
+  String _getPosition() => _userProfile?.position ?? 'Position not set';
+  String _getDepartment() => _userProfile?.departmentId ?? 'Department not set';
+  String _getEmail() => _userProfile?.email ?? 'Email not set';
+  String _getPhone() => _userProfile?.phone ?? 'Phone not set';
+  String _getRole() => _userProfile?.role ?? 'Role not set';
+  bool _isVerified() => _userProfile?.isVerified ?? false;
+  String _getVerificationStatus() =>
+      _userProfile?.verificationStatus ?? 'Pending Review';
 
   @override
   Widget build(BuildContext context) {
     Provider.of<LoginViewModel>(context, listen: false);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isTablet = screenWidth > 600;
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        double padding = isTablet ? 32.0 : 16.0;
-        double avatarSize = isTablet ? 140 : 100;
-        double textScale = isTablet ? 1.3 : 1.0;
+        final padding = isTablet ? 32.0 : 16.0;
+        final avatarSize = isTablet ? 140.0 : 100.0;
+        final textScale = isTablet ? 1.3 : 1.0;
 
         return Scaffold(
           appBar: CustomAppBar(
-            onProfileTap: _logout,
+            onProfileTap: _logout, // Logout on profile tap
             profileImage: const AssetImage('assets/images/default_profile.png'),
           ),
           body: SafeArea(
@@ -133,7 +109,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       padding: EdgeInsets.symmetric(horizontal: padding),
                       child: Column(
                         children: [
-                          SizedBox(height: screenHeight * 0.03),
+                          SizedBox(height: size.height * 0.03),
+
+                          // Avatar
                           Container(
                             width: avatarSize,
                             height: avatarSize,
@@ -153,23 +131,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.02),
+                          SizedBox(height: size.height * 0.02),
+
+                          // Name
                           Text(
                             _getFullName(),
                             style: TextStyle(
-                              fontSize: 20 * textScale,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                fontSize: 20 * textScale,
+                                fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             _getEmployeeId(),
                             style: TextStyle(
-                              fontSize: 14 * textScale,
-                              color: Colors.grey,
-                            ),
+                                fontSize: 14 * textScale, color: Colors.grey),
                           ),
                           const SizedBox(height: 12),
+
+                          // Active Badge
                           Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6 * textScale),
@@ -186,99 +165,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.04),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          SizedBox(height: size.height * 0.04),
+
+                          // Info Fields
+                          _buildInfoRow('JOB TITLE', _getPosition(), textScale),
+                          _buildInfoRow(
+                              'DEPARTMENT', _getDepartment(), textScale),
+                          _buildInfoRow(
+                              'EMAIL ADDRESS', _getEmail(), textScale),
+                          _buildInfoRow('PHONE NUMBER', _getPhone(), textScale),
+                          _buildInfoRow('ROLE', _getRole(), textScale),
+
+                          const SizedBox(height: 16),
+                          Row(
                             children: [
-                              Text('JOB TITLE',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getPosition(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('DEPARTMENT',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getDepartment(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('EMAIL ADDRESS',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getEmail(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('PHONE NUMBER',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getPhone(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('ROLE',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getRole(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Icon(Icons.check_circle,
-                                      color: _isVerified()
-                                          ? Colors.green
-                                          : Colors.grey,
-                                      size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                      _isVerified()
-                                          ? 'Verified'
-                                          : 'Not Verified',
-                                      style: TextStyle(
-                                          fontSize: 14 * textScale,
-                                          fontWeight: FontWeight.w500,
-                                          color: _isVerified()
-                                              ? Colors.green
-                                              : Colors.grey)),
-                                ],
+                              Icon(Icons.check_circle,
+                                  color: _isVerified()
+                                      ? Colors.green
+                                      : Colors.grey,
+                                  size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isVerified() ? 'Verified' : 'Not Verified',
+                                style: TextStyle(
+                                  fontSize: 14 * textScale,
+                                  fontWeight: FontWeight.w500,
+                                  color: _isVerified()
+                                      ? Colors.green
+                                      : Colors.grey,
+                                ),
                               ),
                             ],
                           ),
-                          SizedBox(height: screenHeight * 0.03),
+
+                          SizedBox(height: size.height * 0.03),
+
+                          // Edit Profile Button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                // TODO: Navigate to Edit Profile screen
-                              },
+                              onPressed: _goToEditProfile,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                                    borderRadius: BorderRadius.circular(8)),
                                 padding: EdgeInsets.symmetric(
                                     vertical: isTablet ? 18.0 : 14.0),
                               ),
@@ -292,7 +222,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.04),
+
+                          SizedBox(height: size.height * 0.04),
+
+                          // Verification Section
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
@@ -304,68 +237,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text('Current Status:',
-                              style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  fontWeight: FontWeight.w500)),
+                              style: TextStyle(fontSize: 14 * textScale)),
                           const SizedBox(height: 8),
                           Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6 * textScale),
                             decoration: BoxDecoration(
                               color: _getVerificationStatus() == 'Verified'
-                                  ? Colors.green.withValues(alpha: 0.3)
-                                  : Colors.orangeAccent.withValues(alpha: 0.3),
+                                  ? Colors.green.withOpacity(0.3)
+                                  : Colors.orange.withOpacity(0.3),
                               border: Border.all(
-                                  color: _getVerificationStatus() == 'Verified'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                  width: 1),
+                                color: _getVerificationStatus() == 'Verified'
+                                    ? Colors.green
+                                    : Colors.orange,
+                                width: 1,
+                              ),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               _getVerificationStatus(),
                               style: TextStyle(
-                                  color: _getVerificationStatus() == 'Verified'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                  fontSize: 12 * textScale,
-                                  fontWeight: FontWeight.w600),
+                                color: _getVerificationStatus() == 'Verified'
+                                    ? Colors.green
+                                    : Colors.orange,
+                                fontSize: 12 * textScale,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text('Please capture a selfie for verification.',
-                              style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  color: Colors.grey)),
+                              style: TextStyle(color: Colors.grey)),
                           const SizedBox(height: 16),
+
+                          // Capture Selfie Button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const SelfiePage()),
-                                );
-                              },
+                              onPressed: _goToSelfie,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                                    borderRadius: BorderRadius.circular(8)),
                                 padding: EdgeInsets.symmetric(
                                     vertical: isTablet ? 18.0 : 14.0),
                               ),
                               child: Text(
                                 'Capture Verification Selfie',
                                 style: TextStyle(
-                                    fontSize: 15 * textScale,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white),
+                                  fontSize: 15 * textScale,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.06),
+                          SizedBox(height: size.height * 0.06),
                         ],
                       ),
                     ),
@@ -373,6 +300,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  // Helper to reduce duplication
+  Widget _buildInfoRow(String label, String value, double textScale) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(
+                fontSize: 12 * textScale,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(value,
+            style: TextStyle(
+                fontSize: 16 * textScale, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationRejectedView extends StatefulWidget {
@@ -13,33 +13,30 @@ class VerificationRejectedView extends StatefulWidget {
 
 class _VerificationRejectedViewState extends State<VerificationRejectedView> {
   void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
-
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
-    }
+    print('Rejected → Logout → Login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged out')),
+    );
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
   void _retakePhoto() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Retaking photo...')));
-    // Add navigation to photo capture screen here
+    print('Rejected → Retake Photo → Selfie');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Retaking photo...')),
+    );
+    Navigator.of(context).pushReplacementNamed(AppRoutes.selfie);
   }
 
   void _contactSupport() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Contacting support...')));
-    // Add navigation or contact logic here
+    print('Rejected → Contact Support');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Opening support...')),
+    );
+    // TODO: Open email, URL, or in-app support
   }
 
   @override
@@ -66,7 +63,7 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
             ),
             const SizedBox(height: 40.0),
             Lottie.asset(
-              'assets/lottie/Verification Failed.json', // Add a red cross / failed animation
+              'assets/lottie/Verification Failed.json',
               width: 200,
               height: 200,
               fit: BoxFit.contain,

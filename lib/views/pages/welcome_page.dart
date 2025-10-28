@@ -4,6 +4,11 @@ import 'package:veriwork_mobile/core/constants/routes.dart';
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
+  void _goToLogin(BuildContext context) {
+    print('Welcome → Login');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +73,7 @@ class WelcomeScreen extends StatelessWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context)
-                            .pushReplacementNamed(AppRoutes.login);
-                      },
+                      onPressed: () => _goToLogin(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),

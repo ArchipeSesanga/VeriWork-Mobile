@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class SelfiePage extends StatefulWidget {
@@ -16,11 +17,14 @@ class _SelfiePageState extends State<SelfiePage> {
   bool _isLoading = false;
   bool _isCapturing = false;
   final ImagePicker _picker = ImagePicker();
-
   Uint8List? _webImageBytes;
 
   Future<void> _logout() async {
-    Navigator.pushReplacementNamed(context, '/login');
+    print('Selfie → Logout → Login');
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
   Future<void> _pickImage() async {
@@ -39,13 +43,9 @@ class _SelfiePageState extends State<SelfiePage> {
       if (pickedFile != null && mounted) {
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
-          setState(() {
-            _webImageBytes = bytes;
-          });
+          setState(() => _webImageBytes = bytes);
         } else {
-          setState(() {
-            _image = File(pickedFile.path);
-          });
+          setState(() => _image = File(pickedFile.path));
         }
       }
     } catch (_) {
@@ -66,12 +66,14 @@ class _SelfiePageState extends State<SelfiePage> {
     setState(() => _isLoading = true);
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2)); // Simulate upload
       if (mounted) {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/verification_pending');
+          print('Selfie → Verification Pending');
+          Navigator.of(context)
+              .pushReplacementNamed(AppRoutes.verificationPending);
         }
       }
     } catch (_) {

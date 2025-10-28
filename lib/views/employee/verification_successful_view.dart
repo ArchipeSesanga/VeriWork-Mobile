@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationSuccessfulView extends StatefulWidget {
@@ -14,26 +14,22 @@ class VerificationSuccessfulView extends StatefulWidget {
 class _VerificationSuccessfulViewState
     extends State<VerificationSuccessfulView> {
   void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
-
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
-    }
+    print('Success → Logout → Login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged out')),
+    );
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void _goToDashboard() {
+    print('Success → Go to Dashboard');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Navigating to Dashboard...')),
+    );
+    Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
   }
 
   @override
@@ -76,7 +72,7 @@ class _VerificationSuccessfulViewState
                 color: Colors.grey,
               ),
             ),
-            const SizedBox(height: 24.0), // Space for Lottie animation
+            const SizedBox(height: 24.0),
             Lottie.asset(
               'assets/lottie/Successful Verification.json',
               width: 200,
@@ -85,12 +81,7 @@ class _VerificationSuccessfulViewState
             ),
             const Spacer(),
             ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Navigating to Dashboard...')),
-                );
-                // Add navigation to dashboard screen here later
-              },
+              onPressed: _goToDashboard,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[700],
                 foregroundColor: Colors.white,

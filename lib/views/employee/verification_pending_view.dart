@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationPendingView extends StatefulWidget {
@@ -13,28 +12,24 @@ class VerificationPendingView extends StatefulWidget {
 
 class _VerificationPendingViewState extends State<VerificationPendingView> {
   void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
-
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false,
-      );
-    }
+    print('Pending → Logout → Login');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logged out')),
+    );
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (route) => false,
+    );
   }
 
   void _navigateHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DashboardScreen()),
-    );
+    print('Pending → Back to Dashboard');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+  }
+
+  void _goBack() {
+    // Optional: if you want back arrow to do same as "Back to Home"
+    _navigateHome();
   }
 
   @override
@@ -52,8 +47,8 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
           children: [
             IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.blue),
-              onPressed: () => Navigator.pop(context),
-              tooltip: 'Back',
+              onPressed: _goBack,
+              tooltip: 'Back to Dashboard',
             ),
             const SizedBox(height: 16.0),
             const Center(

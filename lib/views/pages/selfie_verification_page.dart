@@ -6,6 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SelfiePage extends StatefulWidget {
   const SelfiePage({super.key});
@@ -18,7 +21,7 @@ class _SelfiePageState extends State<SelfiePage> {
   File? _image;
   bool _isLoading = false;
   bool _isCapturing = false;
-  bool _faceDetected = false; // NEW
+  bool _faceDetected = false; // Placeholder for face detection
   final ImagePicker _picker = ImagePicker();
   Uint8List? _webImageBytes;
 
@@ -41,7 +44,7 @@ class _SelfiePageState extends State<SelfiePage> {
     if (_isCapturing) return;
     setState(() {
       _isCapturing = true;
-      _faceDetected = false; // Reset
+      _faceDetected = false;
     });
 
     try {
@@ -58,19 +61,20 @@ class _SelfiePageState extends State<SelfiePage> {
           final bytes = await pickedFile.readAsBytes();
           setState(() {
             _webImageBytes = bytes;
-            _faceDetected = true; // SIMULATE face detection
+            _faceDetected = true; // Simulate face detection
           });
         } else {
           setState(() {
             _image = File(pickedFile.path);
-            _faceDetected = true; // SIMULATE face detection
+            _faceDetected = true; // Simulate face detection
           });
         }
 
         print('Selfie to Face Detected to Ready to Submit');
         _showFaceDetectedFeedback();
       }
-    } catch (_) {
+    } catch (e) {
+      print('PickImage Error: $e');
       if (mounted) {
         _showSnackBar("Failed to capture selfie. Please try again.", false);
       }
@@ -103,19 +107,56 @@ class _SelfiePageState extends State<SelfiePage> {
     }
 
     setState(() => _isLoading = true);
+    print('Submitting selfie...');
 
     try {
-      await Future.delayed(const Duration(seconds: 2)); // Simulate upload
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showSnackBar("Please log in first.", false);
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final employeeId = user.uid;
+      print('Employee ID: $employeeId');
+      String fileName = 'selfies/$employeeId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      print('Uploading to: $fileName');
+
+      UploadTask uploadTask;
+      if (kIsWeb) {
+        if (_webImageBytes == null) throw Exception('No web image data');
+        uploadTask = FirebaseStorage.instance.ref(fileName).putData(_webImageBytes!);
+      } else {
+        if (_image == null) throw Exception('No mobile image file');
+        uploadTask = FirebaseStorage.instance.ref(fileName).putFile(_image!);
+      }
+
+      final snapshot = await uploadTask.whenComplete(() {
+        print('Upload complete for: $fileName');
+      });
+      final downloadURL = await snapshot.ref.getDownloadURL();
+      print('Download URL: $downloadURL');
+
+      await FirebaseFirestore.instance.collection('verifications').doc(employeeId).set({
+        'employeeId': employeeId,
+        'selfieUrl': downloadURL,
+        'status': 'Pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      print('Firestore document created for: $employeeId');
+
       if (mounted) {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          print('Selfie to Verification Pending');
           Navigator.of(context).pushReplacementNamed(AppRoutes.verificationPending);
         }
       }
-    } catch (_) {
-      _showSnackBar("Submission failed. Please try again.", false);
+    } catch (e) {
+      print('Submit Error: $e');
+      if (mounted) {
+        _showSnackBar("Submission failed: $e. Please try again.", false);
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -164,7 +205,7 @@ class _SelfiePageState extends State<SelfiePage> {
             ),
             const SizedBox(height: 24),
 
-            // Circular selfie preview
+            // Circular selfie preview with face detection feedback
             Container(
               width: 220,
               height: 220,
@@ -191,24 +232,25 @@ class _SelfiePageState extends State<SelfiePage> {
             ),
 
             // Face Detected Badge
-            if (_faceDetected) ...[
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Face Detected!",
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+            if (_faceDetected)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Face Detected! Ready to submit.",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
 
             const SizedBox(height: 40),
 
@@ -244,7 +286,7 @@ class _SelfiePageState extends State<SelfiePage> {
 
             const SizedBox(height: 16),
 
-            // Submit Button (only enabled if face detected)
+            // Submit Button (enabled only if face detected)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

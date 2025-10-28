@@ -24,7 +24,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
 
       // Navigate to login screen and clear navigation stack
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     }

@@ -23,7 +23,7 @@ class _MainScreenState extends State<MainScreen> {
     const VerificationPendingView(),
     const VerificationRejectedView(),
     const VerificationSuccessfulView(),
-    const SelfiePage()
+    const SelfiePage(),
   ];
 
   @override

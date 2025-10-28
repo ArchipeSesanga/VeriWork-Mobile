@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
+import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -118,7 +120,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     color: const Color(0xFF5B7CB1), width: 3),
                                 image: _userProfile?.imageUrl != null
                                     ? DecorationImage(
-                                        image: NetworkImage(_userProfile!.imageUrl!),
+                                        image: NetworkImage(
+                                            _userProfile!.imageUrl!),
                                         fit: BoxFit.cover,
                                       )
                                     : const DecorationImage(
@@ -177,8 +180,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                           // Info Fields (left-aligned)
                           _buildInfoRow('JOB TITLE', _getPosition(), textScale),
-                          _buildInfoRow('DEPARTMENT', _getDepartment(), textScale),
-                          _buildInfoRow('EMAIL ADDRESS', _getEmail(), textScale),
+                          _buildInfoRow(
+                              'DEPARTMENT', _getDepartment(), textScale),
+                          _buildInfoRow(
+                              'EMAIL ADDRESS', _getEmail(), textScale),
                           _buildInfoRow('PHONE NUMBER', _getPhone(), textScale),
                           _buildInfoRow('ROLE', _getRole(), textScale),
 
@@ -186,7 +191,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Row(
                             children: [
                               Icon(Icons.check_circle,
-                                  color: _isVerified() ? Colors.green : Colors.grey,
+                                  color: _isVerified()
+                                      ? Colors.green
+                                      : Colors.grey,
                                   size: 20),
                               const SizedBox(width: 8),
                               Text(
@@ -194,7 +201,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 style: TextStyle(
                                   fontSize: 14 * textScale,
                                   fontWeight: FontWeight.w500,
-                                  color: _isVerified() ? Colors.green : Colors.grey,
+                                  color: _isVerified()
+                                      ? Colors.green
+                                      : Colors.grey,
                                 ),
                               ),
                             ],
@@ -208,7 +217,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: ElevatedButton(
                               onPressed: _goToEditProfile,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1976D2),
+                                backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8)),
                                 padding: EdgeInsets.symmetric(
@@ -280,7 +289,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: ElevatedButton(
                               onPressed: _goToSelfie,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1976D2),
+                                backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8)),
                                 padding: EdgeInsets.symmetric(
@@ -302,6 +311,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
           ),
+          bottomNavigationBar: CustomBottomNav(
+            currentIndex: 0, // Dashboard/Home is selected
+            onTap: (index) {
+              if (index == 1) {
+                // Navigate to Profile
+                Navigator.pushNamed(context, AppRoutes.profileSettings);
+              }
+              // index 0 is already on Dashboard, so do nothing
+            },
+          ),
         );
       },
     );
@@ -321,8 +340,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-              fontSize: 16 * textScale, fontWeight: FontWeight.w500),
+          style:
+              TextStyle(fontSize: 16 * textScale, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 16),
       ],

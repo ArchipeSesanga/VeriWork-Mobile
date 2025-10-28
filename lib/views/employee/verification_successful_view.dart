@@ -3,7 +3,10 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/employee/profile_view.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
+import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
 
 class VerificationSuccessfulView extends StatefulWidget {
   const VerificationSuccessfulView({super.key});
@@ -106,25 +109,21 @@ class _VerificationSuccessfulViewState
           ],
         ),
       ),
-
-      // BOTTOM NAVIGATION BAR
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavTap,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_outlined),
-            activeIcon: Icon(Icons.camera_alt),
-            label: 'Selfie',
-          ),
-        ],
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: 0, // Keep Home highlighted (or -1 for none)
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileView()),
+            );
+          }
+        },
       ),
     );
   }

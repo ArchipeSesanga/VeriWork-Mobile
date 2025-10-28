@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/employee/profile_view.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
+import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
 
 class VerificationPendingView extends StatefulWidget {
   const VerificationPendingView({super.key});
 
   @override
-  State<VerificationPendingView> createState() => _VerificationPendingViewState();
+  State<VerificationPendingView> createState() =>
+      _VerificationPendingViewState();
 }
 
 class _VerificationPendingViewState extends State<VerificationPendingView> {
@@ -116,7 +121,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
             ElevatedButton(
               onPressed: _navigateHome,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[700],
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
@@ -132,25 +137,21 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
           ],
         ),
       ),
-
-      // BOTTOM NAVIGATION: Home + Profile
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavTap,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: 0, // Keep Home highlighted (or -1 for none)
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileView()),
+            );
+          }
+        },
       ),
     );
   }

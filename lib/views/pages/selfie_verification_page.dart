@@ -3,12 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/employee/profile_view.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
 
 class SelfiePage extends StatefulWidget {
   const SelfiePage({super.key});
@@ -119,13 +123,15 @@ class _SelfiePageState extends State<SelfiePage> {
 
       final employeeId = user.uid;
       print('Employee ID: $employeeId');
-      String fileName = 'selfies/$employeeId/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      String fileName =
+          'selfies/$employeeId/${DateTime.now().millisecondsSinceEpoch}.jpg';
       print('Uploading to: $fileName');
 
       UploadTask uploadTask;
       if (kIsWeb) {
         if (_webImageBytes == null) throw Exception('No web image data');
-        uploadTask = FirebaseStorage.instance.ref(fileName).putData(_webImageBytes!);
+        uploadTask =
+            FirebaseStorage.instance.ref(fileName).putData(_webImageBytes!);
       } else {
         if (_image == null) throw Exception('No mobile image file');
         uploadTask = FirebaseStorage.instance.ref(fileName).putFile(_image!);
@@ -137,7 +143,10 @@ class _SelfiePageState extends State<SelfiePage> {
       final downloadURL = await snapshot.ref.getDownloadURL();
       print('Download URL: $downloadURL');
 
-      await FirebaseFirestore.instance.collection('verifications').doc(employeeId).set({
+      await FirebaseFirestore.instance
+          .collection('verifications')
+          .doc(employeeId)
+          .set({
         'employeeId': employeeId,
         'selfieUrl': downloadURL,
         'status': 'Pending',
@@ -149,7 +158,8 @@ class _SelfiePageState extends State<SelfiePage> {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.verificationPending);
+          Navigator.of(context)
+              .pushReplacementNamed(AppRoutes.verificationPending);
         }
       }
     } catch (e) {
@@ -260,7 +270,7 @@ class _SelfiePageState extends State<SelfiePage> {
               child: ElevatedButton(
                 onPressed: _isCapturing ? null : _pickImage,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -292,7 +302,7 @@ class _SelfiePageState extends State<SelfiePage> {
               child: ElevatedButton(
                 onPressed: _faceDetected && !_isLoading ? _submitSelfie : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -318,25 +328,21 @@ class _SelfiePageState extends State<SelfiePage> {
           ],
         ),
       ),
-
-      // BOTTOM NAVIGATION
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onNavTap,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_outlined),
-            activeIcon: Icon(Icons.camera_alt),
-            label: 'Selfie',
-          ),
-        ],
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: 0, // Keep Home highlighted (or -1 for none)
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileView()),
+            );
+          }
+        },
       ),
     );
   }

@@ -3,7 +3,10 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/employee/profile_view.dart';
+import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
+import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
 
 class VerificationRejectedView extends StatefulWidget {
   const VerificationRejectedView({super.key});
@@ -124,7 +127,22 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
           ],
         ),
       ),
-      
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: 0, // Keep Home highlighted (or -1 for none)
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileView()),
+            );
+          }
+        },
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -14,8 +15,8 @@ class CustomBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      selectedItemColor: Colors.blueAccent,
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.textSecondary,
       onTap: onTap,
       items: const [
         BottomNavigationBarItem(

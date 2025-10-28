@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lottie/lottie.dart';
-import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationRejectedView extends StatefulWidget {
   const VerificationRejectedView({super.key});
@@ -52,9 +51,43 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        onProfileTap: _logout,
-        profileImage: const AssetImage('assets/images/default_profile.png'),
+      appBar: AppBar(
+        backgroundColor: Colors.blue[700],
+        title: Center(
+          child: Image.asset(
+            'assets/images/Logo.png',
+            height: 40,
+            fit: BoxFit.contain,
+          ),
+        ),
+        actions: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+              const SizedBox(width: 8.0),
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: kIsWeb
+                      ? (_webImageBytes != null
+                          ? MemoryImage(_webImageBytes!)
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>)
+                      : (_mobileImagePath != null
+                          ? FileImage(File(_mobileImagePath!))
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>),
+                  onBackgroundImageError: (_, __) {},
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

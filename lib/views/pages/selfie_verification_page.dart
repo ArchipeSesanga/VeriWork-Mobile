@@ -2,8 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:veriwork_mobile/core/constants/app_colours.dart';
-import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class SelfiePage extends StatefulWidget {
   const SelfiePage({super.key});
@@ -106,9 +104,43 @@ class _SelfiePageState extends State<SelfiePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        onProfileTap: _logout,
-        profileImage: const AssetImage('assets/images/default_profile.png'),
+      appBar: AppBar(
+        backgroundColor: Colors.blue[700],
+        title: Center(
+          child: Image.asset(
+            'assets/images/Logo.png',
+            height: 40,
+            fit: BoxFit.contain,
+          ),
+        ),
+        actions: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage: kIsWeb
+                      ? (_webImageBytes != null
+                          ? MemoryImage(_webImageBytes!)
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>)
+                      : (_mobileImagePath != null
+                          ? FileImage(File(_mobileImagePath!))
+                          : const AssetImage('assets/profile_banner.png')
+                              as ImageProvider<Object>),
+                  onBackgroundImageError: (_, __) {},
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -159,7 +191,7 @@ class _SelfiePageState extends State<SelfiePage> {
               child: ElevatedButton(
                 onPressed: _isCapturing ? null : _pickImage,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: const Color(0xFF3B82F6),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -191,7 +223,7 @@ class _SelfiePageState extends State<SelfiePage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submitSelfie,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: Colors.blue.shade700,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -218,7 +250,7 @@ class _SelfiePageState extends State<SelfiePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: AppColors.primary,
+        selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
         onTap: (index) {

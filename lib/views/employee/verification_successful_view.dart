@@ -1,9 +1,5 @@
-import 'dart:io' show File;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:lottie/lottie.dart'; // Import Lottie package
+import 'package:lottie/lottie.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
@@ -17,35 +13,6 @@ class VerificationSuccessfulView extends StatefulWidget {
 
 class _VerificationSuccessfulViewState
     extends State<VerificationSuccessfulView> {
-  Uint8List? _webImageBytes;
-  String? _mobileImagePath;
-
-  Future<void> _pickImage() async {
-    if (kIsWeb) {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() => _webImageBytes = bytes);
-      }
-    } else {
-      try {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-        if (pickedFile != null) {
-          setState(() {
-            _mobileImagePath = pickedFile.path;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to pick image: $e')));
-        }
-      }
-    }
-  }
-
   void _logout() async {
     // Clear any stored authentication data
     //final prefs = await SharedPreferences.getInstance();
@@ -58,20 +25,10 @@ class _VerificationSuccessfulViewState
 
       // Navigate to login screen and clear navigation stack
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     }
-  }
-
-  void _navigateHome() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Navigating to Home')));
-  }
-
-  void _navigateProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Already on Verification Successful')));
   }
 
   @override
@@ -145,33 +102,6 @@ class _VerificationSuccessfulViewState
               child: const Text('Go to Dashboard'),
             ),
             const SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.home),
-                      onPressed: _navigateHome,
-                      tooltip: 'Home',
-                    ),
-                    const Text('Home'),
-                  ],
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.person),
-                      onPressed: _navigateProfile,
-                      tooltip: 'Profile',
-                    ),
-                    const Text('Profile'),
-                  ],
-                ),
-              ],
-            ),
           ],
         ),
       ),

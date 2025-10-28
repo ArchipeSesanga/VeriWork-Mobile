@@ -18,7 +18,6 @@ class _SelfiePageState extends State<SelfiePage> {
   final ImagePicker _picker = ImagePicker();
 
   Uint8List? _webImageBytes;
-  String? _mobileImagePath;
 
   Future<void> _logout() async {
     Navigator.pushReplacementNamed(context, '/login');
@@ -45,7 +44,6 @@ class _SelfiePageState extends State<SelfiePage> {
           });
         } else {
           setState(() {
-            _mobileImagePath = pickedFile.path;
             _image = File(pickedFile.path);
           });
         }
@@ -215,28 +213,6 @@ class _SelfiePageState extends State<SelfiePage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          } else {
-            Navigator.pushReplacementNamed(context, '/profile');
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Profile",
-          ),
-        ],
       ),
     );
   }

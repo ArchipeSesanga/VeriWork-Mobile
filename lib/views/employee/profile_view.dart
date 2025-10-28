@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import '../../models/profile_model.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
@@ -133,18 +133,6 @@ class _ProfileViewState extends State<ProfileView> {
         (route) => false,
       );
     }
-  }
-
-  void _navigateHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DashboardScreen()),
-    );
-  }
-
-  void _navigateProfile() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Already on Profile')));
   }
 
   ImageProvider<Object> _getProfileImage() {
@@ -281,7 +269,7 @@ class _ProfileViewState extends State<ProfileView> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
@@ -291,33 +279,6 @@ class _ProfileViewState extends State<ProfileView> {
             child: const Text('Submit'),
           ),
           const SizedBox(height: 16.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.home),
-                    onPressed: _navigateHome,
-                    tooltip: 'Home',
-                  ),
-                  const Text('Home'),
-                ],
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.person),
-                    onPressed: _navigateProfile,
-                    tooltip: 'Profile',
-                  ),
-                  const Text('Profile'),
-                ],
-              ),
-            ],
-          ),
         ],
       ),
     );

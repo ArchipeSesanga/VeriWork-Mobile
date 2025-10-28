@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 
@@ -28,7 +29,7 @@ class AuthViewModel extends ChangeNotifier {
 
         // Navigate to login screen and clear navigation stack
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
           (route) => false,
         );
       }

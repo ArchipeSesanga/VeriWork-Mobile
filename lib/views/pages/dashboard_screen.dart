@@ -1,13 +1,8 @@
-import 'dart:io' show File;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:provider/provider.dart';
-import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
-import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
@@ -21,9 +16,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
-  Uint8List? _webImageBytes;
-  String? _mobileImagePath;
   ProfileModel? _userProfile;
   bool _isLoading = true;
 
@@ -55,45 +47,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SnackBar(content: Text('Failed to load profile: $e')),
         );
       }
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      try {
-        final authService = Provider.of<AuthService>(context, listen: false);
-
-        // TODO: Upload image to Firebase Storage and update Firestore profile
-        if (kIsWeb) {
-          final bytes = await pickedFile.readAsBytes();
-          setState(() => _webImageBytes = bytes);
-        } else {
-          setState(() => _mobileImagePath = pickedFile.path);
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile image updated')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update image: $e')),
-        );
-      }
-    }
-  }
-
-  void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    setState(() => _selectedIndex = index);
-
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfileView()),
-      );
     }
   }
 
@@ -153,24 +106,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _userProfile?.phone ?? 'Phone not set';
   }
 
-  ImageProvider<Object> _getImageProvider() {
-    if (kIsWeb && _webImageBytes != null) {
-      return MemoryImage(_webImageBytes!);
-    } else if (!kIsWeb && _mobileImagePath != null) {
-      return FileImage(File(_mobileImagePath!));
-    }
-
-    // Fallback to network image from Firestore
-    if (_userProfile?.imageUrl != null && _userProfile!.imageUrl!.isNotEmpty) {
-      return NetworkImage(_userProfile!.imageUrl!);
-    }
-
-    return const AssetImage('assets/profile_banner.png');
-  }
-
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    Provider.of<LoginViewModel>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -432,20 +370,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
           ),
         );
       },

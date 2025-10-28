@@ -42,14 +42,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _skipToEnd() {
-    _pageController.animateToPage(
-      onboardingData.length - 1,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
-    );
-  }
-
   void _navigateToMainPage() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const WelcomeScreen()),

@@ -1,8 +1,4 @@
-import 'dart:io' show File;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lottie/lottie.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
@@ -16,22 +12,6 @@ class VerificationRejectedView extends StatefulWidget {
 }
 
 class _VerificationRejectedViewState extends State<VerificationRejectedView> {
-  Uint8List? _webImageBytes;
-  String? _mobileImagePath;
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() => _webImageBytes = bytes);
-      } else {
-        setState(() => _mobileImagePath = pickedFile.path);
-      }
-    }
-  }
-
   void _logout() async {
     // Clear any stored authentication data
     //final prefs = await SharedPreferences.getInstance();
@@ -44,7 +24,7 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
 
       // Navigate to login screen and clear navigation stack
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
       );
     }

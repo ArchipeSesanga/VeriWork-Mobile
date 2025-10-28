@@ -9,7 +9,9 @@ import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
+import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -95,6 +97,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _logout() async {
+    // Clear any stored authentication data
+    //final prefs = await SharedPreferences.getInstance();
+    //await prefs.clear(); // or prefs.remove('token') for specific keys
+
+    // Show logout message
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Logged out')));
+
+      // Navigate to login screen and clear navigation stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
   String _getFullName() {
     if (_userProfile == null) return 'Loading...';
     return '${_userProfile?.name ?? ''} ${_userProfile?.surname ?? ''}'.trim();
@@ -162,34 +182,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         double textScale = isTablet ? 1.3 : 1.0;
 
         return Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppColors.primary,
-            title: Center(
-              child: Image.asset(
-                'assets/images/Logo.png',
-                height: isTablet ? 60 : 40,
-                fit: BoxFit.contain,
-              ),
-            ),
-            actions: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.logout),
-                    onPressed: () => viewModel.logoutUser(context),
-                    tooltip: 'Logout',
-                  ),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: isTablet ? 26 : 20,
-                      backgroundImage: _getImageProvider(),
-                    ),
-                  ),
-                  SizedBox(width: isTablet ? 20 : 12),
-                ],
-              ),
-            ],
+          appBar: CustomAppBar(
+            onProfileTap: _logout,
+            profileImage: const AssetImage('assets/images/default_profile.png'),
           ),
           body: SafeArea(
             child: _isLoading

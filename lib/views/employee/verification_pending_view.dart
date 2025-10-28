@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationPendingView extends StatefulWidget {
   const VerificationPendingView({super.key});
@@ -43,9 +45,22 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
     }
   }
 
-  void _logout() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Logged out')));
+  void _logout() async {
+    // Clear any stored authentication data
+    //final prefs = await SharedPreferences.getInstance();
+    //await prefs.clear(); // or prefs.remove('token') for specific keys
+
+    // Show logout message
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Logged out')));
+
+      // Navigate to login screen and clear navigation stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 
   void _navigateHome() {
@@ -65,43 +80,9 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: Center(
-          child: Image.asset(
-            'assets/images/Logo.png',
-            height: 40,
-            fit: BoxFit.contain,
-          ),
-        ),
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
-                tooltip: 'Logout',
-              ),
-              const SizedBox(width: 8.0),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: kIsWeb
-                      ? (_webImageBytes != null
-                          ? MemoryImage(_webImageBytes!)
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>)
-                      : (_mobileImagePath != null
-                          ? FileImage(File(_mobileImagePath!))
-                          : const AssetImage('assets/profile_banner.png')
-                              as ImageProvider<Object>),
-                  onBackgroundImageError: (_, __) {},
-                ),
-              ),
-            ],
-          ),
-        ],
+      appBar: CustomAppBar(
+        onProfileTap: _logout,
+        profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

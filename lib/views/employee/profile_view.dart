@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import '../../models/profile_model.dart';
+import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -115,9 +117,22 @@ class _ProfileViewState extends State<ProfileView> {
     });
   }
 
-  void _logout() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Logged out')));
+  void _logout() async {
+    // Clear any stored authentication data
+    //final prefs = await SharedPreferences.getInstance();
+    //await prefs.clear(); // or prefs.remove('token') for specific keys
+
+    // Show logout message
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Logged out')));
+
+      // Navigate to login screen and clear navigation stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 
   void _navigateHome() {
@@ -145,34 +160,9 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: Center(
-          child: Image.asset(
-            'assets/images/Logo.png',
-            height: 40,
-            fit: BoxFit.contain,
-          ),
-        ),
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
-                tooltip: 'Logout',
-              ),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: _getProfileImage(),
-                  onBackgroundImageError: (_, __) {},
-                ),
-              ),
-            ],
-          ),
-        ],
+      appBar: CustomAppBar(
+        onProfileTap: _logout,
+        profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),

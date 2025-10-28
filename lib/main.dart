@@ -36,11 +36,11 @@ class MyApp extends StatelessWidget {
         home: StreamBuilder(
           stream: firebaseAuth.authStateChanges(),
           builder: (context, snapshot) {
-            // check if user signed in
+            // Check if user signed in
             if (snapshot.hasData) {
               return const DashboardScreen();
             } else {
-              // user not loggedin
+              // User not logged in
               return const OnboardingPage();
             }
           },

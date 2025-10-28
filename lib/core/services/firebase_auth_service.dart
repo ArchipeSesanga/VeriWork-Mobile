@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
@@ -158,4 +160,6 @@ class AuthService {
       return "Authentication error: $e";
     }
   }
+
+  Future<void> uploadProfileImage(Uint8List bytes) async {}
 }

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/core/utils/firebase.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart'; // ← ADD THIS
 import 'package:veriwork_mobile/widgets/showInSnackBar.dart';
 import 'package:veriwork_mobile/widgets/showIn_snackbar.dart';
 
@@ -22,7 +23,7 @@ class LoginViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   // ─────────────────────────────────────────────
-  // 🔹 SETTERS
+  // SETTERS
   // ─────────────────────────────────────────────
   void setEmail(String? email) {
     _email = email;
@@ -35,7 +36,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  // 🔹 RESET INPUT FIELDS
+  // RESET INPUT FIELDS
   // ─────────────────────────────────────────────
   void resetValues() {
     _email = null;
@@ -43,12 +44,12 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  //  GET CURRENT USER UID
+  // GET CURRENT USER UID
   // ─────────────────────────────────────────────
   String get currentUid => firebaseAuth.currentUser!.uid;
 
   // ─────────────────────────────────────────────
-  //  LOGIN USER
+  // LOGIN USER
   // ─────────────────────────────────────────────
   Future<void> login(BuildContext context) async {
     final form = formKey.currentState!;
@@ -65,7 +66,6 @@ class LoginViewModel extends ChangeNotifier {
       return;
     }
 
-    // 🔹 Check for null values
     if (_email == null || _password == null) {
       showInSnackBar(
         'Please enter both email and password.',
@@ -80,12 +80,13 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       final success = await _authService.loginUser(
-        email: _email!.trim(), // ✅ Safe unwrapping
+        email: _email!.trim(),
         password: _password!.trim(),
       );
 
       if (success) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        print('LoginViewModel → Login Success → Dashboard');
+        Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
       }
     } catch (e) {
       showInSnackBar(
@@ -100,7 +101,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  //  LOGOUT USER
+  // LOGOUT USER
   // ─────────────────────────────────────────────
   Future<void> logoutUser(BuildContext context) async {
     loading = true;
@@ -108,7 +109,11 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       await _authService.logOut();
-      // TODO: Navigate back to login screen after logout
+      print('LoginViewModel → Logout → Login');
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.login,
+        (route) => false,
+      );
     } catch (e) {
       showInSnackBar(
         e.toString(),
@@ -122,7 +127,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  //  OPTIONAL: EMAIL & PASSWORD VALIDATION HELPERS
+  // OPTIONAL: EMAIL & PASSWORD VALIDATION HELPERS
   // ─────────────────────────────────────────────
   String? validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required.';

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationSuccessfulView extends StatefulWidget {
@@ -13,27 +15,32 @@ class VerificationSuccessfulView extends StatefulWidget {
 
 class _VerificationSuccessfulViewState
     extends State<VerificationSuccessfulView> {
-  void _logout() async {
-    print('Success → Logout → Login');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged out')),
-    );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.login,
-      (route) => false,
-    );
+  int _selectedIndex = 1; // 0 = Home, 1 = Selfie (success = selfie flow)
+
+  Future<void> _logout() async {
+    print('VerificationSuccess to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
   }
 
   void _goToDashboard() {
-    print('Success → Go to Dashboard');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Navigating to Dashboard...')),
-    );
+    print('VerificationSuccess to Dashboard');
     Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+  }
+
+  void _onNavTap(int index) {
+    if (index == 0) {
+      _goToDashboard();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final padding = isTablet ? 24.0 : 16.0;
+    final textScale = isTablet ? 1.2 : 1.0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
@@ -41,42 +48,42 @@ class _VerificationSuccessfulViewState
         profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16.0),
-            const Text(
+            SizedBox(height: 16 * textScale),
+            Text(
               'Verification Complete',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 24 * textScale,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 40.0),
-            const Text(
+            SizedBox(height: 40 * textScale),
+            Text(
               'Verification Successful!',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 28 * textScale,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 16.0),
-            const Text(
+            SizedBox(height: 16 * textScale),
+            Text(
               'Your identity has been verified successfully. You now have full access.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16 * textScale,
                 color: Colors.grey,
               ),
             ),
-            const SizedBox(height: 24.0),
+            SizedBox(height: 24 * textScale),
             Lottie.asset(
               'assets/lottie/Successful Verification.json',
-              width: 200,
-              height: 200,
+              width: 200 * textScale,
+              height: 200 * textScale,
               fit: BoxFit.contain,
             ),
             const Spacer(),
@@ -90,11 +97,34 @@ class _VerificationSuccessfulViewState
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: const Text('Go to Dashboard'),
+              child: Text(
+                'Go to Dashboard',
+                style: TextStyle(fontSize: 16 * textScale),
+              ),
             ),
-            const SizedBox(height: 16.0),
+            SizedBox(height: 16 * textScale),
           ],
         ),
+      ),
+
+      // BOTTOM NAVIGATION BAR
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavTap,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt_outlined),
+            activeIcon: Icon(Icons.camera_alt),
+            label: 'Selfie',
+          ),
+        ],
       ),
     );
   }

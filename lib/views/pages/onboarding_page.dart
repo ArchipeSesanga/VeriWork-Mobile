@@ -6,7 +6,7 @@ class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+State<OnboardingPage> createState() => _OnboardingPageState();
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
@@ -42,12 +42,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void _navigateToWelcome() {
-    print('Onboarding → Welcome');
+    print('Onboarding to Welcome');
     Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
   }
 
   void _skipToLogin() {
-    print('Skip → Login');
+    print('Onboarding to Skip to Login');
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
@@ -72,21 +72,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
           ),
 
-          // Skip Button (only on non-last pages)
+          // SKIP BUTTON – TextButton (as requested)
           if (!isLastPage)
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
                 onPressed: _skipToLogin,
-                child: const Text(
-                  "Skip",
-                  style: TextStyle(
-                    color: Colors.white,
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  textStyle: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
                 ),
+                child: const Text("Skip"),
               ),
             ),
 
@@ -131,7 +132,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       decoration: BoxDecoration(
                         color: currentIndex == index
                             ? Colors.blue
-                            : Colors.white.withValues(alpha: 0.4),
+                            : Colors.white.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -141,8 +142,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
                 // Back + Next Buttons
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

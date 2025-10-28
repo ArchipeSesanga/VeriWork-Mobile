@@ -1,39 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationPendingView extends StatefulWidget {
   const VerificationPendingView({super.key});
 
   @override
-  State<VerificationPendingView> createState() =>
-      _VerificationPendingViewState();
+  State<VerificationPendingView> createState() => _VerificationPendingViewState();
 }
 
 class _VerificationPendingViewState extends State<VerificationPendingView> {
-  void _logout() async {
-    print('Pending → Logout → Login');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged out')),
-    );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.login,
-      (route) => false,
-    );
+  int _selectedIndex = 1; // 0 = Home, 1 = Profile (pending = post-selfie)
+
+  Future<void> _logout() async {
+    print('VerificationPending to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
   }
 
   void _navigateHome() {
-    print('Pending → Back to Dashboard');
+    print('VerificationPending to Dashboard');
     Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
   }
 
-  void _goBack() {
-    // Optional: if you want back arrow to do same as "Back to Home"
-    _navigateHome();
+  void _navigateToProfile() {
+    print('VerificationPending to Profile');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.profileSettings);
+  }
+
+  void _onNavTap(int index) {
+    if (index == 0) {
+      _navigateHome();
+    } else if (index == 1) {
+      _navigateToProfile();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final padding = isTablet ? 24.0 : 16.0;
+    final textScale = isTablet ? 1.2 : 1.0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
@@ -41,27 +52,32 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
         profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Back Button
             IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.blue),
-              onPressed: _goBack,
+              onPressed: _navigateHome,
               tooltip: 'Back to Dashboard',
             ),
-            const SizedBox(height: 16.0),
-            const Center(
+            SizedBox(height: 16 * textScale),
+
+            // Title
+            Center(
               child: Text(
                 'Verification Pending',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 24 * textScale,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
             ),
-            const SizedBox(height: 32.0),
+            SizedBox(height: 32 * textScale),
+
+            // Clock Icon
             const Center(
               child: Icon(
                 Icons.access_time,
@@ -69,29 +85,34 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 16.0),
-            const Center(
+            SizedBox(height: 16 * textScale),
+
+            // Message
+            Center(
               child: Text(
                 'Your verification is pending',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 20 * textScale,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
             ),
-            const SizedBox(height: 8.0),
-            const Center(
+            SizedBox(height: 8 * textScale),
+            Center(
               child: Text(
                 'HR is reviewing your photo. You will be notified once the process is complete.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 16 * textScale,
                   color: Colors.grey,
                 ),
               ),
             ),
+
             const Spacer(),
+
+            // Back to Home Button
             ElevatedButton(
               onPressed: _navigateHome,
               style: ElevatedButton.styleFrom(
@@ -102,11 +123,34 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: const Text('Back to Home'),
+              child: Text(
+                'Back to Home',
+                style: TextStyle(fontSize: 16 * textScale),
+              ),
             ),
-            const SizedBox(height: 16.0),
+            SizedBox(height: 16 * textScale),
           ],
         ),
+      ),
+
+      // BOTTOM NAVIGATION: Home + Profile
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavTap,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

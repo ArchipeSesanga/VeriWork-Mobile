@@ -46,23 +46,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _logout() async {
-    print('Dashboard → Logout → Login');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged out')),
-    );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.login,
-      (route) => false,
-    );
+    print('Dashboard to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context); // Uses ViewModel for consistency
   }
 
   void _goToEditProfile() {
-    print('Dashboard → Edit Profile');
+    print('Dashboard to Edit Profile');
     Navigator.pushNamed(context, AppRoutes.profileSettings);
   }
 
   void _goToSelfie() {
-    print('Dashboard → Capture Selfie');
+    print('Dashboard to Capture Selfie');
     Navigator.pushNamed(context, AppRoutes.selfie);
   }
 
@@ -85,7 +80,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<LoginViewModel>(context, listen: false);
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
 
@@ -97,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           appBar: CustomAppBar(
-            onProfileTap: _logout, // Logout on profile tap
+            onProfileTap: _logout,
             profileImage: const AssetImage('assets/images/default_profile.png'),
           ),
           body: SafeArea(
@@ -106,73 +100,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 : RefreshIndicator(
                     onRefresh: _loadUserProfile,
                     child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.symmetric(horizontal: padding),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: size.height * 0.03),
 
-                          // Avatar
-                          Container(
-                            width: avatarSize,
-                            height: avatarSize,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: const Color(0xFF5B7CB1), width: 3),
-                              image: _userProfile?.imageUrl != null
-                                  ? DecorationImage(
-                                      image:
-                                          NetworkImage(_userProfile!.imageUrl!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const DecorationImage(
-                                      image: AssetImage('assets/profile.jpg'),
-                                      fit: BoxFit.cover,
-                                    ),
+                          // Avatar (centered)
+                          Center(
+                            child: Container(
+                              width: avatarSize,
+                              height: avatarSize,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: const Color(0xFF5B7CB1), width: 3),
+                                image: _userProfile?.imageUrl != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(_userProfile!.imageUrl!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : const DecorationImage(
+                                        image: AssetImage('assets/profile.jpg'),
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
                             ),
                           ),
                           SizedBox(height: size.height * 0.02),
 
-                          // Name
-                          Text(
-                            _getFullName(),
-                            style: TextStyle(
-                                fontSize: 20 * textScale,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getEmployeeId(),
-                            style: TextStyle(
-                                fontSize: 14 * textScale, color: Colors.grey),
+                          // Name & ID (centered)
+                          Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  _getFullName(),
+                                  style: TextStyle(
+                                      fontSize: 20 * textScale,
+                                      fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _getEmployeeId(),
+                                  style: TextStyle(
+                                      fontSize: 14 * textScale,
+                                      color: Colors.grey),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 12),
 
-                          // Active Badge
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6 * textScale),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF4CAF50),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Active Employee',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12 * textScale,
-                                fontWeight: FontWeight.w600,
+                          // Active Badge (centered)
+                          Center(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6 * textScale),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4CAF50),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'Active Employee',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12 * textScale,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
                           SizedBox(height: size.height * 0.04),
 
-                          // Info Fields
+                          // Info Fields (left-aligned)
                           _buildInfoRow('JOB TITLE', _getPosition(), textScale),
-                          _buildInfoRow(
-                              'DEPARTMENT', _getDepartment(), textScale),
-                          _buildInfoRow(
-                              'EMAIL ADDRESS', _getEmail(), textScale),
+                          _buildInfoRow('DEPARTMENT', _getDepartment(), textScale),
+                          _buildInfoRow('EMAIL ADDRESS', _getEmail(), textScale),
                           _buildInfoRow('PHONE NUMBER', _getPhone(), textScale),
                           _buildInfoRow('ROLE', _getRole(), textScale),
 
@@ -180,9 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Row(
                             children: [
                               Icon(Icons.check_circle,
-                                  color: _isVerified()
-                                      ? Colors.green
-                                      : Colors.grey,
+                                  color: _isVerified() ? Colors.green : Colors.grey,
                                   size: 20),
                               const SizedBox(width: 8),
                               Text(
@@ -190,9 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 style: TextStyle(
                                   fontSize: 14 * textScale,
                                   fontWeight: FontWeight.w500,
-                                  color: _isVerified()
-                                      ? Colors.green
-                                      : Colors.grey,
+                                  color: _isVerified() ? Colors.green : Colors.grey,
                                 ),
                               ),
                             ],
@@ -225,19 +227,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                           SizedBox(height: size.height * 0.04),
 
-                          // Verification Section
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Verification Status',
-                              style: TextStyle(
-                                  fontSize: 16 * textScale,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                          // Verification Section (left-aligned)
+                          Text(
+                            'Verification Status',
+                            style: TextStyle(
+                                fontSize: 16 * textScale,
+                                fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
-                          Text('Current Status:',
-                              style: TextStyle(fontSize: 14 * textScale)),
+                          Text(
+                            'Current Status:',
+                            style: TextStyle(fontSize: 14 * textScale),
+                          ),
                           const SizedBox(height: 8),
                           Container(
                             padding: EdgeInsets.symmetric(
@@ -266,8 +267,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Text('Please capture a selfie for verification.',
-                              style: TextStyle(color: Colors.grey)),
+                          Text(
+                            'Please capture a selfie for verification.',
+                            style: TextStyle(
+                                fontSize: 14 * textScale, color: Colors.grey),
+                          ),
                           const SizedBox(height: 16),
 
                           // Capture Selfie Button
@@ -303,20 +307,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // Helper to reduce duplication
   Widget _buildInfoRow(String label, String value, double textScale) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(
-                fontSize: 12 * textScale,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey)),
+        Text(
+          label,
+          style: TextStyle(
+              fontSize: 12 * textScale,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey),
+        ),
         const SizedBox(height: 4),
-        Text(value,
-            style: TextStyle(
-                fontSize: 16 * textScale, fontWeight: FontWeight.w500)),
+        Text(
+          value,
+          style: TextStyle(
+              fontSize: 16 * textScale, fontWeight: FontWeight.w500),
+        ),
         const SizedBox(height: 16),
       ],
     );

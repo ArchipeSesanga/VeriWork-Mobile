@@ -23,9 +23,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-        print('Login → Back to Welcome');
+        print('Login to Back to Welcome');
         Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
-        return false; // We handled navigation
+        return false;
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -129,8 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                     onPressed: () {
                                       setState(() {
-                                        _isPasswordVisible =
-                                            !_isPasswordVisible;
+                                        _isPasswordVisible = !_isPasswordVisible;
                                       });
                                     },
                                   ),
@@ -138,10 +137,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 obscureText: !_isPasswordVisible,
                                 validator: Validations.validatePassword,
                                 textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) =>
-                                    viewModel.login(context),
-                                onSaved: (value) =>
-                                    viewModel.setPassword(value),
+                                onFieldSubmitted: (_) => viewModel.login(context),
+                                onSaved: (value) => viewModel.setPassword(value),
                               ),
                               SizedBox(height: isWide ? 30 : 24),
 
@@ -153,14 +150,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onPressed: viewModel.loading
                                       ? null
                                       : () {
-                                          if (viewModel.formKey.currentState!
-                                              .validate()) {
-                                            viewModel.formKey.currentState!
-                                                .save();
-                                            print(
-                                                'Login → Attempting login...');
-                                            viewModel.login(
-                                                context); // Must go to Dashboard
+                                          if (viewModel.formKey.currentState!.validate()) {
+                                            viewModel.formKey.currentState!.save();
+                                            print('Login to Attempting login...');
+                                            viewModel.login(context);
                                           }
                                         },
                                   style: ElevatedButton.styleFrom(
@@ -173,8 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: viewModel.loading
-                                        ? const CircularProgressIndicator(
-                                            color: Colors.white)
+                                        ? const CircularProgressIndicator(color: Colors.white)
                                         : const Text(
                                             'Login',
                                             style: TextStyle(
@@ -191,8 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // Forgot Password
                               TextButton(
-                                onPressed: () =>
-                                    _showForgotPasswordDialog(context),
+                                onPressed: () => _showForgotPasswordDialog(context),
                                 child: const Text(
                                   'Forgot your Password?',
                                   style: TextStyle(color: Colors.blue),
@@ -217,8 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        final viewModel =
-            Provider.of<ForgotPassViewModel>(context, listen: false);
+        final viewModel = Provider.of<ForgotPassViewModel>(context, listen: false);
 
         return AlertDialog(
           title: const Text('Reset Password'),
@@ -252,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   : () {
                       if (viewModel.formKey.currentState!.validate()) {
                         viewModel.formKey.currentState!.save();
-                        print('Forgot Password → Sending reset link...');
+                        print('Forgot Password to Sending reset link...');
                         viewModel.forgotPassword(context);
                       }
                     },

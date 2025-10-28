@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class SelfiePage extends StatefulWidget {
@@ -16,20 +18,31 @@ class _SelfiePageState extends State<SelfiePage> {
   File? _image;
   bool _isLoading = false;
   bool _isCapturing = false;
+  bool _faceDetected = false; // NEW
   final ImagePicker _picker = ImagePicker();
   Uint8List? _webImageBytes;
 
+  int _selectedIndex = 1; // 0 = Home, 1 = Selfie
+
   Future<void> _logout() async {
-    print('Selfie → Logout → Login');
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.login,
-      (route) => false,
-    );
+    print('Selfie to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
+  }
+
+  void _onNavTap(int index) {
+    if (index == 0) {
+      print('Selfie to Dashboard (Bottom Nav)');
+      Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+    }
   }
 
   Future<void> _pickImage() async {
     if (_isCapturing) return;
-    setState(() => _isCapturing = true);
+    setState(() {
+      _isCapturing = true;
+      _faceDetected = false; // Reset
+    });
 
     try {
       final pickedFile = await _picker.pickImage(
@@ -43,10 +56,19 @@ class _SelfiePageState extends State<SelfiePage> {
       if (pickedFile != null && mounted) {
         if (kIsWeb) {
           final bytes = await pickedFile.readAsBytes();
-          setState(() => _webImageBytes = bytes);
+          setState(() {
+            _webImageBytes = bytes;
+            _faceDetected = true; // SIMULATE face detection
+          });
         } else {
-          setState(() => _image = File(pickedFile.path));
+          setState(() {
+            _image = File(pickedFile.path);
+            _faceDetected = true; // SIMULATE face detection
+          });
         }
+
+        print('Selfie to Face Detected to Ready to Submit');
+        _showFaceDetectedFeedback();
       }
     } catch (_) {
       if (mounted) {
@@ -57,9 +79,26 @@ class _SelfiePageState extends State<SelfiePage> {
     }
   }
 
+  void _showFaceDetectedFeedback() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Text("Face Detected! Ready to submit."),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Future<void> _submitSelfie() async {
-    if (_image == null && _webImageBytes == null) {
-      _showSnackBar("Please capture a selfie first", false);
+    if (!_faceDetected) {
+      _showSnackBar("Please capture a clear selfie first.", false);
       return;
     }
 
@@ -71,9 +110,8 @@ class _SelfiePageState extends State<SelfiePage> {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          print('Selfie → Verification Pending');
-          Navigator.of(context)
-              .pushReplacementNamed(AppRoutes.verificationPending);
+          print('Selfie to Verification Pending');
+          Navigator.of(context).pushReplacementNamed(AppRoutes.verificationPending);
         }
       }
     } catch (_) {
@@ -134,9 +172,11 @@ class _SelfiePageState extends State<SelfiePage> {
                 color: Colors.grey.shade200,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _image != null || _webImageBytes != null
-                      ? Colors.blueAccent
-                      : Colors.grey.shade300,
+                  color: _faceDetected
+                      ? Colors.green
+                      : (_image != null || _webImageBytes != null
+                          ? Colors.blueAccent
+                          : Colors.grey.shade300),
                   width: 3,
                 ),
               ),
@@ -149,6 +189,26 @@ class _SelfiePageState extends State<SelfiePage> {
                             size: 100, color: Colors.grey.shade400),
               ),
             ),
+
+            // Face Detected Badge
+            if (_faceDetected) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Face Detected!",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ],
 
             const SizedBox(height: 40),
 
@@ -184,11 +244,11 @@ class _SelfiePageState extends State<SelfiePage> {
 
             const SizedBox(height: 16),
 
-            // Submit Button
+            // Submit Button (only enabled if face detected)
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitSelfie,
+                onPressed: _faceDetected && !_isLoading ? _submitSelfie : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade700,
                   foregroundColor: Colors.white,
@@ -215,6 +275,26 @@ class _SelfiePageState extends State<SelfiePage> {
             ),
           ],
         ),
+      ),
+
+      // BOTTOM NAVIGATION
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavTap,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt_outlined),
+            activeIcon: Icon(Icons.camera_alt),
+            label: 'Selfie',
+          ),
+        ],
       ),
     );
   }

@@ -3,9 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/app_colours.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
-import '../../models/profile_model.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/models/profile_model.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class ProfileView extends StatefulWidget {
@@ -20,23 +22,22 @@ class _ProfileViewState extends State<ProfileView> {
   Uint8List? _webImageBytes;
   String? _mobileImagePath;
 
-  // Firebase hosted image (default)
   final String firebaseImageUrl =
       "https://firebasestorage.googleapis.com/v0/b/veriwork-database.firebasestorage.app/o/f0e3e68a-d57c-4790-b030-23ef42b2280a_greenp-arrot.jpg?alt=media";
 
-  // Controllers for each field to maintain cursor and focus
   final _nameController = TextEditingController();
   final _employeeIdController = TextEditingController();
   final _departmentIdController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  // Focus nodes to manage focus
   final _nameFocus = FocusNode();
   final _employeeIdFocus = FocusNode();
   final _departmentIdFocus = FocusNode();
   final _emailFocus = FocusNode();
   final _phoneFocus = FocusNode();
+
+  int _selectedIndex = 1; // 0 = Home, 1 = Profile
 
   @override
   void initState() {
@@ -67,27 +68,15 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _pickImage() async {
-    if (kIsWeb) {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null && mounted) {
+      if (kIsWeb) {
         final bytes = await pickedFile.readAsBytes();
         setState(() => _webImageBytes = bytes);
-      }
-    } else {
-      try {
-        final picker = ImagePicker();
-        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-        if (pickedFile != null) {
-          setState(() {
-            _mobileImagePath = pickedFile.path;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to pick image: $e')));
-        }
+      } else {
+        setState(() => _mobileImagePath = pickedFile.path);
       }
     }
   }
@@ -117,21 +106,16 @@ class _ProfileViewState extends State<ProfileView> {
     });
   }
 
-  void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
+  Future<void> _logout() async {
+    print('Profile to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
+  }
 
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false,
-      );
+  void _onNavTap(int index) {
+    if (index == 0) {
+      print('Profile to Dashboard (Bottom Nav)');
+      Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
     }
   }
 
@@ -147,23 +131,33 @@ class _ProfileViewState extends State<ProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final padding = isTablet ? 24.0 : 16.0;
+    final textScale = isTablet ? 1.2 : 1.0;
+
     return Scaffold(
       appBar: CustomAppBar(
         onProfileTap: _logout,
         profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(padding),
         children: [
-          const Text(
+          Text(
             'Profile & Settings',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 24 * textScale,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16 * textScale),
+
+          // Profile Header
           Center(
             child: Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16 * textScale),
               decoration: BoxDecoration(
                 color: Colors.yellow[50],
                 borderRadius: BorderRadius.circular(8.0),
@@ -176,16 +170,16 @@ class _ProfileViewState extends State<ProfileView> {
                     child: Stack(
                       children: [
                         CircleAvatar(
-                          radius: 40,
+                          radius: 40 * textScale,
                           backgroundImage: _getProfileImage(),
                           onBackgroundImageError: (_, __) {},
                         ),
                         Positioned(
                           bottom: 0,
-                          right: 5,
+                          right: 5 * textScale,
                           child: Container(
-                            width: 16,
-                            height: 16,
+                            width: 16 * textScale,
+                            height: 16 * textScale,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.green,
@@ -198,70 +192,93 @@ class _ProfileViewState extends State<ProfileView> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _profile.name ?? '',
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        _profile.employeeId ?? '',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
+                  SizedBox(width: 16 * textScale),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _profile.name ?? '',
+                          style: TextStyle(
+                            fontSize: 22 * textScale,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          _profile.employeeId ?? '',
+                          style: TextStyle(
+                            fontSize: 14 * textScale,
+                            color: Colors.grey[600],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24.0),
-          const Text(
+          SizedBox(height: 24 * textScale),
+
+          // Personal Info
+          Text(
             'Personal Information',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16 * textScale,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 8.0),
+          SizedBox(height: 8 * textScale),
+
           _buildField(
             label: 'Name',
             controller: _nameController,
             focusNode: _nameFocus,
-            onChanged: (value) => _updateField('name', value),
+            onChanged: (v) => _updateField('name', v),
             hintText: 'eg. Jane Doe',
+            textScale: textScale,
           ),
           _buildField(
             label: 'Employee ID',
             controller: _employeeIdController,
             focusNode: _employeeIdFocus,
-            onChanged: (value) => _updateField('employeeId', value),
+            onChanged: (v) => _updateField('employeeId', v),
             hintText: 'eg. EMP-007',
+            textScale: textScale,
           ),
           _buildField(
             label: 'Department',
             controller: _departmentIdController,
             focusNode: _departmentIdFocus,
-            onChanged: (value) => _updateField('departmentId', value),
+            onChanged: (v) => _updateField('departmentId', v),
             hintText: 'eg. Human Resources',
+            textScale: textScale,
           ),
           _buildField(
             label: 'Email Address',
             controller: _emailController,
             focusNode: _emailFocus,
-            onChanged: (value) => _updateField('email', value),
+            onChanged: (v) => _updateField('email', v),
             keyboardType: TextInputType.emailAddress,
             hintText: 'eg. jane.doe@example.com',
+            textScale: textScale,
           ),
           _buildField(
             label: 'Phone Number',
             controller: _phoneController,
             focusNode: _phoneFocus,
-            onChanged: (value) => _updateField('phone', value),
+            onChanged: (v) => _updateField('phone', v),
             keyboardType: TextInputType.phone,
             hintText: 'eg. +27 123 456 789',
             hasCheckIcon: false,
+            textScale: textScale,
           ),
-          const SizedBox(height: 24.0),
+
+          SizedBox(height: 24 * textScale),
+
+          // Submit Button
           ElevatedButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -276,9 +293,32 @@ class _ProfileViewState extends State<ProfileView> {
                 borderRadius: BorderRadius.circular(8.0),
               ),
             ),
-            child: const Text('Submit'),
+            child: Text(
+              'Submit',
+              style: TextStyle(fontSize: 16 * textScale),
+            ),
           ),
-          const SizedBox(height: 16.0),
+          SizedBox(height: 16 * textScale),
+        ],
+      ),
+
+      // BOTTOM NAVIGATION
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavTap,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
@@ -292,15 +332,21 @@ class _ProfileViewState extends State<ProfileView> {
     TextInputType? keyboardType,
     bool hasCheckIcon = false,
     String? hintText,
+    required double textScale,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: EdgeInsets.only(bottom: 16.0 * textScale),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(fontSize: 14, color: Colors.black87)),
-          const SizedBox(height: 4.0),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14 * textScale,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 4.0 * textScale),
           TextField(
             controller: controller,
             focusNode: focusNode,
@@ -309,8 +355,10 @@ class _ProfileViewState extends State<ProfileView> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: const BorderSide(color: Colors.grey),
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16.0 * textScale,
+                vertical: 12.0 * textScale,
+              ),
               suffixIcon: hasCheckIcon
                   ? Icon(Icons.check, color: Colors.grey[400])
                   : null,
@@ -318,10 +366,12 @@ class _ProfileViewState extends State<ProfileView> {
               hintStyle: TextStyle(
                 color: Colors.grey[400],
                 fontStyle: FontStyle.italic,
+                fontSize: 14 * textScale,
               ),
             ),
             keyboardType: keyboardType,
             onChanged: onChanged,
+            style: TextStyle(fontSize: 15 * textScale),
           ),
         ],
       ),

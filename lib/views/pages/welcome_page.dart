@@ -5,7 +5,7 @@ class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   void _goToLogin(BuildContext context) {
-    print('Welcome → Login');
+    print('Welcome to Login');
     Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 
@@ -28,8 +28,7 @@ class WelcomeScreen extends StatelessWidget {
                 // Scrollable main content
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

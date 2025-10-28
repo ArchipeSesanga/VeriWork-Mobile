@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationRejectedView extends StatefulWidget {
@@ -12,27 +14,19 @@ class VerificationRejectedView extends StatefulWidget {
 }
 
 class _VerificationRejectedViewState extends State<VerificationRejectedView> {
-  void _logout() async {
-    print('Rejected → Logout → Login');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logged out')),
-    );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.login,
-      (route) => false,
-    );
+  Future<void> _logout() async {
+    print('VerificationRejected to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
   }
 
   void _retakePhoto() {
-    print('Rejected → Retake Photo → Selfie');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Retaking photo...')),
-    );
+    print('VerificationRejected to Retake Photo to Selfie');
     Navigator.of(context).pushReplacementNamed(AppRoutes.selfie);
   }
 
   void _contactSupport() {
-    print('Rejected → Contact Support');
+    print('VerificationRejected to Contact Support');
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Opening support...')),
     );
@@ -41,6 +35,11 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final padding = isTablet ? 24.0 : 16.0;
+    final textScale = isTablet ? 1.2 : 1.0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
@@ -48,41 +47,41 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
         profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16.0),
-            const Text(
+            SizedBox(height: 16 * textScale),
+            Text(
               'Verification Failed',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 24 * textScale,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
-            const SizedBox(height: 40.0),
+            SizedBox(height: 40 * textScale),
             Lottie.asset(
               'assets/lottie/Verification Failed.json',
-              width: 200,
-              height: 200,
+              width: 200 * textScale,
+              height: 200 * textScale,
               fit: BoxFit.contain,
             ),
-            const SizedBox(height: 24.0),
-            const Text(
+            SizedBox(height: 24 * textScale),
+            Text(
               'Verification Failed!',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 28 * textScale,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 16.0),
-            const Text(
+            SizedBox(height: 16 * textScale),
+            Text(
               'Your photo did not match the records.\nPlease retake and resubmit.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16 * textScale,
                 color: Colors.grey,
               ),
             ),
@@ -96,12 +95,15 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Retake Photo',
-                style: TextStyle(color: Colors.red, fontSize: 16),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16 * textScale,
+                ),
               ),
             ),
-            const SizedBox(height: 12.0),
+            SizedBox(height: 12 * textScale),
             ElevatedButton.icon(
               onPressed: _contactSupport,
               style: ElevatedButton.styleFrom(
@@ -113,15 +115,16 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
                 ),
               ),
               icon: const Icon(Icons.support_agent),
-              label: const Text(
+              label: Text(
                 'Contact Support',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16 * textScale),
               ),
             ),
-            const SizedBox(height: 20.0),
+            SizedBox(height: 20 * textScale),
           ],
         ),
       ),
+      
     );
   }
 }

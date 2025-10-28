@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/core/constants/app_colours.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import '../../models/profile_model.dart';
+import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -115,21 +117,22 @@ class _ProfileViewState extends State<ProfileView> {
     });
   }
 
-  void _logout() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Logged out')));
-  }
+  void _logout() async {
+    // Clear any stored authentication data
+    //final prefs = await SharedPreferences.getInstance();
+    //await prefs.clear(); // or prefs.remove('token') for specific keys
 
-  void _navigateHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DashboardScreen()),
-    );
-  }
+    // Show logout message
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Logged out')));
 
-  void _navigateProfile() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Already on Profile')));
+      // Navigate to login screen and clear navigation stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 
   ImageProvider<Object> _getProfileImage() {
@@ -145,34 +148,9 @@ class _ProfileViewState extends State<ProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: Center(
-          child: Image.asset(
-            'assets/images/Logo.png',
-            height: 40,
-            fit: BoxFit.contain,
-          ),
-        ),
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: _logout,
-                tooltip: 'Logout',
-              ),
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundImage: _getProfileImage(),
-                  onBackgroundImageError: (_, __) {},
-                ),
-              ),
-            ],
-          ),
-        ],
+      appBar: CustomAppBar(
+        onProfileTap: _logout,
+        profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -291,7 +269,7 @@ class _ProfileViewState extends State<ProfileView> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
@@ -301,33 +279,6 @@ class _ProfileViewState extends State<ProfileView> {
             child: const Text('Submit'),
           ),
           const SizedBox(height: 16.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.home),
-                    onPressed: _navigateHome,
-                    tooltip: 'Home',
-                  ),
-                  const Text('Home'),
-                ],
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.person),
-                    onPressed: _navigateProfile,
-                    tooltip: 'Profile',
-                  ),
-                  const Text('Profile'),
-                ],
-              ),
-            ],
-          ),
         ],
       ),
     );

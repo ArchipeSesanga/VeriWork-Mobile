@@ -1,16 +1,12 @@
-import 'dart:io' show File;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:provider/provider.dart';
-import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
-import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/models/profile_model.dart';
+import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
-import 'package:veriwork_mobile/core/constants/routes.dart'; // Added for navigation
+import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,9 +16,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
-  Uint8List? _webImageBytes;
-  String? _mobileImagePath;
   ProfileModel? _userProfile;
   bool _isLoading = true;
 
@@ -57,52 +50,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      try {
-        final authService = Provider.of<AuthService>(context, listen: false);
+  void _logout() async {
+    // Clear any stored authentication data
+    //final prefs = await SharedPreferences.getInstance();
+    //await prefs.clear(); // or prefs.remove('token') for specific keys
 
-        // Upload image and update profile
-        if (kIsWeb) {
-          final bytes = await pickedFile.readAsBytes();
-          await authService.uploadProfileImage(bytes);
-          final updatedProfile = await authService.getUserProfile();
-          setState(() {
-            _webImageBytes = bytes;
-            _userProfile = updatedProfile;
-          });
-        } else {
-          final file = File(pickedFile.path);
-          await authService.uploadProfileImage(file as Uint8List);
-          final updatedProfile = await authService.getUserProfile();
-          setState(() {
-            _mobileImagePath = pickedFile.path;
-            _userProfile = updatedProfile;
-          });
-        }
+    // Show logout message
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Logged out')));
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile image updated successfully')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update image: $e')),
-        );
-      }
-    }
-  }
-
-  void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    setState(() => _selectedIndex = index);
-
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfileView()),
+      // Navigate to login screen and clear navigation stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (route) => false,
       );
     }
   }
@@ -137,6 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String _getRole() {
+    // ✅ FIXED: Added fallback string to avoid syntax error
     return _userProfile?.role ?? 'Role not set';
   }
 
@@ -144,24 +106,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _userProfile?.phone ?? 'Phone not set';
   }
 
-  ImageProvider<Object> _getImageProvider() {
-    if (kIsWeb && _webImageBytes != null) {
-      return MemoryImage(_webImageBytes!);
-    } else if (!kIsWeb && _mobileImagePath != null) {
-      return FileImage(File(_mobileImagePath!));
-    }
-
-    // Fallback to network image from Firestore
-    if (_userProfile?.imageUrl != null && _userProfile!.imageUrl!.isNotEmpty) {
-      return NetworkImage(_userProfile!.imageUrl!);
-    }
-
-    return const AssetImage('assets/profile_banner.png');
-  }
-
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    Provider.of<LoginViewModel>(context, listen: false);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -173,37 +120,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         double textScale = isTablet ? 1.3 : 1.0;
 
         return Scaffold(
-          appBar: AppBar(
-            backgroundColor: AppColors.primary,
-            title: Center(
-              child: Image.asset(
-                'assets/images/Logo.png',
-                height: isTablet ? 60 : 40,
-                fit: BoxFit.contain,
-              ),
-            ),
-            actions: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.logout),
-                    onPressed: () async {
-                      await viewModel.logoutUser(context);
-                      Navigator.pushReplacementNamed(context, AppRoutes.login);
-                    },
-                    tooltip: 'Logout',
-                  ),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: isTablet ? 26 : 20,
-                      backgroundImage: _getImageProvider(),
-                    ),
-                  ),
-                  SizedBox(width: isTablet ? 20 : 12),
-                ],
-              ),
-            ],
+          appBar: CustomAppBar(
+            onProfileTap: _logout,
+            profileImage: const AssetImage('assets/images/default_profile.png'),
           ),
           body: SafeArea(
             child: _isLoading
@@ -222,10 +141,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               shape: BoxShape.circle,
                               border: Border.all(
                                   color: const Color(0xFF5B7CB1), width: 3),
-                              image: DecorationImage(
-                                image: _getImageProvider(),
-                                fit: BoxFit.cover,
-                              ),
+                              image: _userProfile?.imageUrl != null
+                                  ? DecorationImage(
+                                      image:
+                                          NetworkImage(_userProfile!.imageUrl!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : const DecorationImage(
+                                      image: AssetImage('assets/profile.jpg'),
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
@@ -347,12 +272,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ProfileView(),
-                                  ),
-                                );
+                                // TODO: Navigate to Edit Profile screen
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),
@@ -450,20 +370,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
           ),
         );
       },

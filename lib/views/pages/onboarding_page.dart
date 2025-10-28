@@ -17,12 +17,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final List<Map<String, String>> onboardingData = [
     {
       "title": "Verify Your Status",
-      "description": "Quickly verify your employment status with secure authentication.",
+      "description":
+          "Quickly verify your employment status with secure authentication.",
       "lottie": "assets/lottie/verify.json",
     },
     {
       "title": "Update Your Profile",
-      "description": "Keep your profile up to date with the latest information.",
+      "description":
+          "Keep your profile up to date with the latest information.",
       "lottie": "assets/lottie/update_profile.json",
     },
   ];
@@ -31,7 +33,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _nextPage() {
     if (isLastPage) {
-      _navigateToNextScreen();
+      _navigateToMainPage();
     } else {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
@@ -40,13 +42,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _skipToLogin() {
-    Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Skip to Login
-  }
-
-  void _navigateToNextScreen() {
-    // Adjust this based on your flow: /welcome or /login
-    Navigator.of(context).pushReplacementNamed(AppRoutes.welcome); // Default to Welcome
+  void _navigateToMainPage() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+    );
   }
 
   @override
@@ -70,13 +69,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
           ),
 
-          // Skip button (now goes to Login)
+          // Skip button
           if (!isLastPage)
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: TextButton(
-                onPressed: _skipToLogin,
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+                },
                 child: const Text(
                   "Skip",
                   style: TextStyle(

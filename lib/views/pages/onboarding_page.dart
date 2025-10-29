@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_app/views/pages/welcome_page.dart';
-import 'package:veriwork_app/widgets/onboarding_items.dart';
-import 'package:veriwork_app/widgets/my_button.dart';
+import 'package:veriwork_mobile/views/pages/welcome_page.dart';
+import 'package:veriwork_mobile/widgets/onboarding_items.dart';
+import 'package:veriwork_mobile/widgets/my_button.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -128,9 +128,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         height: 8,
                         width: currentIndex == index ? 24 : 8,
                         decoration: BoxDecoration(
-                          color: currentIndex == index
-                              ? Colors.blue
-                              : Colors.grey[300],
+                          color:
+                              currentIndex == index
+                                  ? Colors.blue
+                                  : Colors.grey[300],
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -167,34 +168,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         )
                       else
                         const SizedBox(width: 48), // Spacer
-
                       // Next/Get Started button
                       isLastPage
                           ? MyButton(
-                              title: 'Get Started',
-                              onTap: () {
-                                Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                    builder: (context) => const WelcomeScreen(),
-                                  ),
-                                );
-                              },
-                              color: Colors.blue,
-                            )
+                            title: 'Get Started',
+                            onTap: () {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const WelcomeScreen(),
+                                ),
+                              );
+                            },
+                            color: Colors.blue,
+                          )
                           : GestureDetector(
-                              onTap: _nextPage,
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color: Colors.white,
-                                ),
+                            onTap: _nextPage,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: const BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white,
                               ),
                             ),
+                          ),
                     ],
                   ),
                 ),

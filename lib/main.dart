@@ -10,7 +10,7 @@ import 'package:veriwork_mobile/core/constants/app_theme.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 
-//import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/views/employee/dashboard_view.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 
 void main() async {
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
             }
             if (snapshot.hasData) {
               // User is signed in → go straight to Dashboard
-              return const DashboardScreen();
+              return const DashboardView();
             }
             // Not signed in → start the onboarding flow
             return const OnboardingPage();

@@ -4,7 +4,7 @@ import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/Verifications/verification_pending_view.dart';
 import 'package:veriwork_mobile/views/Verifications/verification_rejected.dart';
 import 'package:veriwork_mobile/views/Verifications/verification_successful_view.dart';
-//import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
+import 'package:veriwork_mobile/views/employee/dashboard_view.dart';
 import 'package:veriwork_mobile/views/pages/login_view.dart';
 import 'package:veriwork_mobile/views/pages/onboarding_page.dart';
 import 'package:veriwork_mobile/views/pages/welcome_page.dart'; // ← WelcomeScreen
@@ -35,10 +35,10 @@ class AppRoutes {
         return _page(const LoginScreen());
 
       case dashboard:
-      //return _page(const DashboardScreen());
+        return _page(const DashboardView());
 
       case profileSettings:
-      //return _page(const ProfileView());
+        return _page(const ProfileView());
 
       case verificationPending:
         return _page(const VerificationPendingView());

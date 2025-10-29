@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/app_colours.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/views/employee/dashboard_view.dart';
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 //import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
@@ -143,7 +144,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
           if (index == 0) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+              MaterialPageRoute(builder: (context) => const DashboardView()),
             );
           } else if (index == 1) {
             Navigator.pushReplacement(

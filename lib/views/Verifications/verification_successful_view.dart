@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:veriwork_mobile/screens/LoginScreen.dart';
+//import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationSuccessfulView extends StatefulWidget {

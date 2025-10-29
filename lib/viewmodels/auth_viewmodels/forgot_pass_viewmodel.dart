@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
-import 'package:veriwork_mobile/core/utils/validations.dart';
+import 'package:veriwork_mobile/core/utils/validators.dart';
 import 'package:veriwork_mobile/widgets/showInSnackBar.dart';
 import 'package:veriwork_mobile/widgets/showIn_snackbar.dart';
 

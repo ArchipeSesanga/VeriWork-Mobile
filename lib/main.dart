@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:veriwork_mobile/core/constants/routes.dart';
-import 'package:veriwork_mobile/core/constants/app_colours.dart';
+import 'package:veriwork_mobile/core/constants/app_theme.dart';
 //import 'package:veriwork_mobile/firebase_options.dart';
 //import 'package:veriwork_mobile/core/utils/firebase.dart';
 

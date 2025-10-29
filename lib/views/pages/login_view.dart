@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-//import 'package:veriwork_mobile/core/utils/validations.dart';
-//import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
-//import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
-//import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/core/utils/validations.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -138,10 +138,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 obscureText: !_isPasswordVisible,
                                 validator: Validations.validatePassword,
                                 textInputAction: TextInputAction.done,
-                                onFieldSubmitted:
-                                    (_) => viewModel.login(context),
-                                onSaved:
-                                    (value) => viewModel.setPassword(value),
+                                onFieldSubmitted: (_) =>
+                                    viewModel.login(context),
+                                onSaved: (value) =>
+                                    viewModel.setPassword(value),
                               ),
                               SizedBox(height: isWide ? 30 : 24),
 
@@ -150,20 +150,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: double.infinity,
                                 height: size.height * 0.065,
                                 child: ElevatedButton(
-                                  onPressed:
-                                      viewModel.loading
-                                          ? null
-                                          : () {
-                                            if (viewModel.formKey.currentState!
-                                                .validate()) {
-                                              viewModel.formKey.currentState!
-                                                  .save();
-                                              print(
-                                                'Login to Attempting login...',
-                                              );
-                                              viewModel.login(context);
-                                            }
-                                          },
+                                  onPressed: viewModel.loading
+                                      ? null
+                                      : () {
+                                          if (viewModel.formKey.currentState!
+                                              .validate()) {
+                                            viewModel.formKey.currentState!
+                                                .save();
+                                            print(
+                                              'Login to Attempting login...',
+                                            );
+                                            viewModel.login(context);
+                                          }
+                                        },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF1976D2),
                                     shape: RoundedRectangleBorder(
@@ -173,20 +172,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   child: FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child:
-                                        viewModel.loading
-                                            ? const CircularProgressIndicator(
+                                    child: viewModel.loading
+                                        ? const CircularProgressIndicator(
+                                            color: Colors.white,
+                                          )
+                                        : const Text(
+                                            'Login',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
                                               color: Colors.white,
-                                            )
-                                            : const Text(
-                                              'Login',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                                letterSpacing: 0.5,
-                                              ),
+                                              letterSpacing: 0.5,
                                             ),
+                                          ),
                                   ),
                                 ),
                               ),
@@ -194,8 +192,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               // Forgot Password
                               TextButton(
-                                onPressed:
-                                    () => _showForgotPasswordDialog(context),
+                                onPressed: () =>
+                                    _showForgotPasswordDialog(context),
                                 child: const Text(
                                   'Forgot your Password?',
                                   style: TextStyle(color: Colors.blue),
@@ -252,16 +250,15 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed:
-                  viewModel.loading
-                      ? null
-                      : () {
-                        if (viewModel.formKey.currentState!.validate()) {
-                          viewModel.formKey.currentState!.save();
-                          print('Forgot Password to Sending reset link...');
-                          viewModel.forgotPassword(context);
-                        }
-                      },
+              onPressed: viewModel.loading
+                  ? null
+                  : () {
+                      if (viewModel.formKey.currentState!.validate()) {
+                        viewModel.formKey.currentState!.save();
+                        print('Forgot Password to Sending reset link...');
+                        viewModel.forgotPassword(context);
+                      }
+                    },
               child: const Text('Send Reset Link'),
             ),
           ],

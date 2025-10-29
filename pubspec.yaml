@@ -31,16 +31,20 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/profile_banner.png
     - assets/images/
     - assets/lottie/
-    # Lottie files used in the app
-    - assets/lottie/Successful Verification.json
-    - assets/lottie/Verification Failed.json
-
+ 
   fonts:
     - family: Unbounded
       fonts:
         - asset: assets/fonts/Unbounded-Regular.ttf
         - asset: assets/fonts/Unbounded-Bold.ttf
+          weight: 700
+
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
           weight: 700

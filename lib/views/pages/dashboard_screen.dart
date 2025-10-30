@@ -1,9 +1,9 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:provider/provider.dart';
-import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
-import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
-import 'package:veriwork_mobile/models/profile_model.dart';
+import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
+import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/pages/login_screen.dart';
 import 'package:veriwork_mobile/views/pages/selfie_verification_page.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
@@ -16,51 +16,21 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  ProfileModel? _userProfile;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-  }
-
-  Future<void> _loadUserProfile() async {
-    try {
-      final authService = AuthService();
-      final profile = await authService.getUserProfile();
-      if (mounted) {
-        setState(() {
-          _userProfile = profile;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error loading user profile: $e');
-      }
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load profile: $e')),
-        );
-      }
-    }
+    // Fetch Firestore user data when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<DashboardViewModel>(context, listen: false)
+          .fetchUserProfile();
+    });
   }
 
   void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
-
-    // Show logout message
     if (context.mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Logged out')));
 
-      // Navigate to login screen and clear navigation stack
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false,
@@ -68,47 +38,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  String _getFullName() {
-    if (_userProfile == null) return 'Loading...';
-    return '${_userProfile?.name ?? ''} ${_userProfile?.surname ?? ''}'.trim();
-  }
-
-  String _getEmployeeId() {
-    return _userProfile?.employeeId ?? 'Employee ID: Not Set';
-  }
-
-  String _getPosition() {
-    return _userProfile?.position ?? 'Position not set';
-  }
-
-  String _getDepartment() {
-    return _userProfile?.departmentId ?? 'Department not set';
-  }
-
-  String _getEmail() {
-    return _userProfile?.email ?? 'Email not set';
-  }
-
-  bool _isVerified() {
-    return _userProfile?.isVerified ?? false;
-  }
-
-  String _getVerificationStatus() {
-    return _userProfile?.verificationStatus ?? 'Pending Review';
-  }
-
-  String _getRole() {
-    // ✅ FIXED: Added fallback string to avoid syntax error
-    return _userProfile?.role ?? 'Role not set';
-  }
-
-  String _getPhone() {
-    return _userProfile?.phone ?? 'Phone not set';
-  }
-
   @override
   Widget build(BuildContext context) {
-    Provider.of<LoginViewModel>(context, listen: false);
+    final vm = Provider.of<DashboardViewModel>(context);
+    final profile = vm.userProfile;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isTablet = screenWidth > 600;
@@ -125,15 +58,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             profileImage: const AssetImage('assets/images/default_profile.png'),
           ),
           body: SafeArea(
-            child: _isLoading
+            child: vm.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
-                    onRefresh: _loadUserProfile,
+                    onRefresh: () async {
+                      await vm.fetchUserProfile();
+                    },
                     child: SingleChildScrollView(
                       padding: EdgeInsets.symmetric(horizontal: padding),
                       child: Column(
                         children: [
                           SizedBox(height: screenHeight * 0.03),
+                          // ───────────────────────────────
+                          // Profile Picture
+                          // ───────────────────────────────
                           Container(
                             width: avatarSize,
                             height: avatarSize,
@@ -141,21 +79,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               shape: BoxShape.circle,
                               border: Border.all(
                                   color: const Color(0xFF5B7CB1), width: 3),
-                              image: _userProfile?.imageUrl != null
-                                  ? DecorationImage(
-                                      image:
-                                          NetworkImage(_userProfile!.imageUrl!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const DecorationImage(
-                                      image: AssetImage('assets/profile.jpg'),
-                                      fit: BoxFit.cover,
-                                    ),
+                              image: DecorationImage(
+                                image: profile?.imageUrl != null &&
+                                        profile!.imageUrl!
+                                            .isNotEmpty //  FIX: Use imageUrl, not documentUrls
+                                    ? NetworkImage(profile.imageUrl!)
+                                        as ImageProvider
+                                    : const AssetImage('assets/profile.jpg'),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
+                          // ───────────────────────────────
+                          // Name + ID
+                          // ───────────────────────────────
                           Text(
-                            _getFullName(),
+                            '${profile?.name ?? ''} ${profile?.surname ?? ''}',
                             style: TextStyle(
                               fontSize: 20 * textScale,
                               fontWeight: FontWeight.bold,
@@ -163,7 +103,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _getEmployeeId(),
+                            profile?.employeeId ??
+                                profile?.uid ??
+                                '', //  FIX: Use employeeId instead of just uid
                             style: TextStyle(
                               fontSize: 14 * textScale,
                               color: Colors.grey,
@@ -187,92 +129,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.04),
+                          // ───────────────────────────────
+                          // User Information Section
+                          // ───────────────────────────────
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('JOB TITLE',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getPosition(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('DEPARTMENT',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getDepartment(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('EMAIL ADDRESS',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getEmail(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('PHONE NUMBER',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getPhone(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Text('ROLE',
-                                  style: TextStyle(
-                                      fontSize: 12 * textScale,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey)),
-                              const SizedBox(height: 4),
-                              Text(_getRole(),
-                                  style: TextStyle(
-                                      fontSize: 16 * textScale,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Icon(Icons.check_circle,
-                                      color: _isVerified()
-                                          ? Colors.green
-                                          : Colors.grey,
-                                      size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                      _isVerified()
-                                          ? 'Verified'
-                                          : 'Not Verified',
-                                      style: TextStyle(
-                                          fontSize: 14 * textScale,
-                                          fontWeight: FontWeight.w500,
-                                          color: _isVerified()
-                                              ? Colors.green
-                                              : Colors.grey)),
-                                ],
-                              ),
+                              _infoLabel('JOB TITLE', textScale),
+                              _infoValue(profile?.position, textScale),
+                              _infoLabel('DEPARTMENT', textScale),
+                              _infoValue(profile?.departmentId, textScale),
+                              _infoLabel('EMAIL ADDRESS', textScale),
+                              _infoValue(profile?.email, textScale),
                             ],
                           ),
                           SizedBox(height: screenHeight * 0.03),
+                          // ───────────────────────────────
+                          // Edit Profile Button
+                          // ───────────────────────────────
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-                                // TODO: Navigate to Edit Profile screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ProfileView()),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1976D2),
@@ -283,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     vertical: isTablet ? 18.0 : 14.0),
                               ),
                               child: Text(
-                                'Edit Profile',
+                                'View Full Profile', //  Changed text to be more accurate
                                 style: TextStyle(
                                   fontSize: 16 * textScale,
                                   fontWeight: FontWeight.w600,
@@ -293,6 +177,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.04),
+                          // ───────────────────────────────
+                          // Verification Section
+                          // ───────────────────────────────
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
@@ -303,40 +190,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Text('Current Status:',
-                              style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 8),
                           Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6 * textScale),
                             decoration: BoxDecoration(
-                              color: _getVerificationStatus() == 'Verified'
-                                  ? Colors.green.withValues(alpha: 0.3)
-                                  : Colors.orangeAccent.withValues(alpha: 0.3),
+                              color: Colors.orangeAccent.withValues(alpha: 0.2),
                               border: Border.all(
-                                  color: _getVerificationStatus() == 'Verified'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                  width: 1),
+                                  color: Colors.orangeAccent, width: 1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              _getVerificationStatus(),
+                              profile?.verificationStatus ??
+                                  'Pending', //  FIX: Use actual verification status
                               style: TextStyle(
-                                  color: _getVerificationStatus() == 'Verified'
-                                      ? Colors.green
-                                      : Colors.orange,
-                                  fontSize: 12 * textScale,
-                                  fontWeight: FontWeight.w600),
+                                color: Colors.orange,
+                                fontSize: 12 * textScale,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Text('Please capture a selfie for verification.',
-                              style: TextStyle(
-                                  fontSize: 14 * textScale,
-                                  color: Colors.grey)),
+                          Text(
+                            'Please capture a selfie for verification.',
+                            style: TextStyle(
+                                fontSize: 14 * textScale, color: Colors.grey),
+                          ),
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
@@ -359,9 +237,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: Text(
                                 'Capture Verification Selfie',
                                 style: TextStyle(
-                                    fontSize: 15 * textScale,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white),
+                                  fontSize: 15 * textScale,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -375,4 +254,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     );
   }
+
+  // ───────────────────────────────
+  //  Helper Widgets
+  // ───────────────────────────────
+  Widget _infoLabel(String text, double textScale) => Padding(
+        padding: const EdgeInsets.only(top: 16.0, bottom: 4.0),
+        child: Text(
+          text,
+          style: TextStyle(
+              fontSize: 12 * textScale,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey),
+        ),
+      );
+
+  Widget _infoValue(String? value, double textScale) => Text(
+        value ?? 'Not available',
+        style: TextStyle(fontSize: 16 * textScale, fontWeight: FontWeight.w500),
+      );
 }

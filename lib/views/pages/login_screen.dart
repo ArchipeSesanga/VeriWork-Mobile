@@ -13,13 +13,11 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
-  final bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
-    LoginViewModel viewModel =
-        Provider.of<LoginViewModel>(context, listen: false);
+    LoginViewModel viewModel = Provider.of<LoginViewModel>(context,
+        listen: true); // ✅ Changed to listen: true
     final size = MediaQuery.of(context).size;
 
     return LayoutBuilder(
@@ -75,26 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             SizedBox(height: isWide ? 30 : 24),
-
-                            if (_errorMessage != null)
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red[50],
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.red[200]!),
-                                ),
-                                child: Text(
-                                  _errorMessage!,
-                                  style: TextStyle(
-                                    color: Colors.red[800],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            if (_errorMessage != null)
-                              SizedBox(height: fieldSpacing),
 
                             // Email Field
                             TextFormField(
@@ -160,7 +138,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
-                                  child: _isLoading
+                                  child: viewModel
+                                          .loading // ✅ Use viewModel.loading
                                       ? const CircularProgressIndicator(
                                           color: Colors.white,
                                         )

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:veriwork_mobile/core/services/firebase_auth_service.dart';
 import 'package:veriwork_mobile/core/utils/firebase.dart';
-import 'package:veriwork_mobile/widgets/showIn_snackbar.dart';
+import 'package:veriwork_mobile/widgets/showin_snackbar.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
@@ -34,7 +34,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  // 🔹 RESET INPUT FIELDS
+  //  RESET INPUT FIELDS
   // ─────────────────────────────────────────────
   void resetValues() {
     _email = null;

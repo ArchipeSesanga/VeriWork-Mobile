@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_pending_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_rejected.dart';
 import 'package:veriwork_mobile/views/employee/verification_successful_view.dart';
@@ -38,7 +37,7 @@ class AppRoutes {
         );
       case profileSettings:
         return MaterialPageRoute(
-          builder: (context) => const ProfileView(),
+          builder: (context) => const DashboardScreen(),
         );
       case verificationPending:
         return MaterialPageRoute(

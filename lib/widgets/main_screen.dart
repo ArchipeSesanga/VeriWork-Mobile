@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_pending_view.dart';
 import 'package:veriwork_mobile/views/employee/verification_rejected.dart';
 import 'package:veriwork_mobile/views/employee/verification_successful_view.dart';
@@ -19,7 +18,6 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const DashboardScreen(),
-    const ProfileView(),
     const VerificationPendingView(),
     const VerificationRejectedView(),
     const VerificationSuccessfulView(),

@@ -1,6 +1,8 @@
+// lib/views/employee/verification_pending_view.dart
 import 'package:flutter/material.dart';
-import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationPendingView extends StatefulWidget {
@@ -12,29 +14,32 @@ class VerificationPendingView extends StatefulWidget {
 }
 
 class _VerificationPendingViewState extends State<VerificationPendingView> {
-  void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
+  int _selectedIndex = 0; // 0 = Home, 1 = Profile
 
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
+  // LOGOUT — uses LoginViewModel
+  Future<void> _logout() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Logged out')));
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+    await loginVM.logoutUser(context);
+  }
 
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
+  // BOTTOM NAV TAP
+  void _onNavTap(int index) {
+    if (index == _selectedIndex) return;
+    setState(() => _selectedIndex = index);
+
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.profileSettings);
     }
   }
 
+  // "Back to Home" button
   void _navigateHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DashboardScreen()),
-    );
+    Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
   }
 
   @override
@@ -112,6 +117,26 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
             const SizedBox(height: 16.0),
           ],
         ),
+      ),
+
+      // BOTTOM NAVIGATION: Home + Profile
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavTap,
+        selectedItemColor: const Color(0xFF1976D2), // BLUE HIGHLIGHT
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

@@ -2,7 +2,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
+
 
 class SelfiePage extends StatefulWidget {
   const SelfiePage({super.key});
@@ -16,11 +20,30 @@ class _SelfiePageState extends State<SelfiePage> {
   bool _isLoading = false;
   bool _isCapturing = false;
   final ImagePicker _picker = ImagePicker();
-
   Uint8List? _webImageBytes;
 
+  // BOTTOM NAV INDEX: 0 = Home, 1 = Profile
+  int _selectedIndex = 0;
+
+  // LOGOUT — uses LoginViewModel
   Future<void> _logout() async {
-    Navigator.pushReplacementNamed(context, '/login');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Logged out')));
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+    await loginVM.logoutUser(context);
+  }
+
+  // BOTTOM NAV TAP
+  void _onNavTap(int index) {
+    if (index == _selectedIndex) return;
+    setState(() => _selectedIndex = index);
+
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.profileSettings);
+    }
   }
 
   Future<void> _pickImage() async {
@@ -71,7 +94,7 @@ class _SelfiePageState extends State<SelfiePage> {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/verification_pending');
+          Navigator.pushReplacementNamed(context, AppRoutes.verificationPending);
         }
       }
     } catch (_) {
@@ -104,9 +127,10 @@ class _SelfiePageState extends State<SelfiePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        onProfileTap: _logout,
+        onProfileTap: _logout, // Now uses LoginViewModel
         profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
@@ -213,6 +237,26 @@ class _SelfiePageState extends State<SelfiePage> {
             ),
           ],
         ),
+      ),
+
+      // BOTTOM NAVIGATION: Home + Profile
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onNavTap,
+        selectedItemColor: const Color(0xFF1976D2), // BLUE HIGHLIGHT
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

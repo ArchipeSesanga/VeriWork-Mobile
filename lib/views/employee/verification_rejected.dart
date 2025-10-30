@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:veriwork_mobile/views/pages/login_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:veriwork_mobile/core/constants/routes.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
 class VerificationRejectedView extends StatefulWidget {
@@ -12,34 +14,27 @@ class VerificationRejectedView extends StatefulWidget {
 }
 
 class _VerificationRejectedViewState extends State<VerificationRejectedView> {
-  void _logout() async {
-    // Clear any stored authentication data
-    //final prefs = await SharedPreferences.getInstance();
-    //await prefs.clear(); // or prefs.remove('token') for specific keys
-
-    // Show logout message
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Logged out')));
-
-      // Navigate to login screen and clear navigation stack
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
-    }
+  // LOGOUT — uses LoginViewModel
+  Future<void> _logout() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Logged out')));
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+    await loginVM.logoutUser(context);
   }
 
+  // RETAKE PHOTO → SelfiePage
   void _retakePhoto() {
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Retaking photo...')));
-    // Add navigation to photo capture screen here
+    Navigator.pushReplacementNamed(context, AppRoutes.selfie);
   }
 
+  // CONTACT SUPPORT → Placeholder (expand later)
   void _contactSupport() {
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Contacting support...')));
-    // Add navigation or contact logic here
+    // TODO: Open email, support page, or in-app chat
   }
 
   @override
@@ -66,7 +61,7 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
             ),
             const SizedBox(height: 40.0),
             Lottie.asset(
-              'assets/lottie/Verification Failed.json', // Add a red cross / failed animation
+              'assets/lottie/Verification Failed.json',
               width: 200,
               height: 200,
               fit: BoxFit.contain,
@@ -125,6 +120,7 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
           ],
         ),
       ),
+      // NO BOTTOM NAVIGATION — AS REQUESTED
     );
   }
 }

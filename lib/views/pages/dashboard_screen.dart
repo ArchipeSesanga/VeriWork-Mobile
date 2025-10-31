@@ -6,8 +6,6 @@ import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart'
 import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
-
-
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -28,11 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _logout() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Logged out')));
-    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
-    await loginVM.logoutUser(context);
+    print('VerificationPending to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
   }
 
   void _onNavTap(int index) {
@@ -61,8 +57,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           appBar: CustomAppBar(
-            onProfileTap: () =>
-                Navigator.pushNamed(context, AppRoutes.profileSettings),
+            onProfileTap: _logout,
             profileImage: const AssetImage('assets/images/default_profile.png'),
           ),
 
@@ -278,4 +273,3 @@ class _DashboardScreenState extends State<DashboardScreen> {
         style: TextStyle(fontSize: 16 * textScale, fontWeight: FontWeight.w500),
       );
 }
-

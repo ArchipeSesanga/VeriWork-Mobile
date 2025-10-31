@@ -18,11 +18,9 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
 
   // LOGOUT — uses LoginViewModel
   Future<void> _logout() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Logged out')));
-    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
-    await loginVM.logoutUser(context);
+    print('VerificationPending to Logout to Login');
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.logoutUser(context);
   }
 
   // BOTTOM NAV TAP

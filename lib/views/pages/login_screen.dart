@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     LoginViewModel viewModel = Provider.of<LoginViewModel>(context,
-        listen: true); // ✅ Changed to listen: true
+        listen: true); //  Changed to listen: true
     final size = MediaQuery.of(context).size;
 
     return LayoutBuilder(
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: viewModel
-                                          .loading // ✅ Use viewModel.loading
+                                          .loading //  Use viewModel.loading
                                       ? const CircularProgressIndicator(
                                           color: Colors.white,
                                         )

@@ -17,25 +17,11 @@ class VerificationPendingView extends StatefulWidget {
 }
 
 class _VerificationPendingViewState extends State<VerificationPendingView> {
-  int _selectedIndex = 0; // 0 = Home, 1 = Profile
-
   // LOGOUT — uses LoginViewModel
   Future<void> _logout() async {
     print('VerificationPending to Logout to Login');
     final viewModel = Provider.of<LoginViewModel>(context, listen: false);
     await viewModel.logoutUser(context);
-  }
-
-  // BOTTOM NAV TAP
-  void _onNavTap(int index) {
-    if (index == _selectedIndex) return;
-    setState(() => _selectedIndex = index);
-
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
-    } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.profileSettings);
-    }
   }
 
   // "Back to Home" button

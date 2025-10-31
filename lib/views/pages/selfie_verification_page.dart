@@ -7,7 +7,6 @@ import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 
-
 class SelfiePage extends StatefulWidget {
   const SelfiePage({super.key});
 
@@ -94,7 +93,8 @@ class _SelfiePageState extends State<SelfiePage> {
         _showSnackBar("Selfie submitted successfully!", true);
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) {
-          Navigator.pushReplacementNamed(context, AppRoutes.verificationPending);
+          Navigator.pushReplacementNamed(
+              context, AppRoutes.verificationPending);
         }
       }
     } catch (_) {
@@ -127,7 +127,7 @@ class _SelfiePageState extends State<SelfiePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        onProfileTap: _logout, // Now uses LoginViewModel
+        onProfileTap: _logout,
         profileImage: const AssetImage('assets/images/default_profile.png'),
       ),
 

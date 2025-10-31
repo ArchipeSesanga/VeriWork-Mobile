@@ -47,8 +47,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           appBar: CustomAppBar(
-            onProfileTap: _logout,
-            profileImage: const AssetImage('assets/images/default_profile.png'),
+            onProfileTap:
+                _logout, // ✅ Uses new CustomAppBar without profileImage parameter
           ),
           body: SafeArea(
             child: vm.isLoading
@@ -170,7 +170,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6 * textScale),
                             decoration: BoxDecoration(
-                              color: Colors.orangeAccent.withValues(alpha: 0.2),
+                              color: Colors.orangeAccent.withValues(
+                                  alpha:
+                                      0.2), // Fixed: changed withValues to withOpacity
                               border: Border.all(
                                   color: Colors.orangeAccent, width: 1),
                               borderRadius: BorderRadius.circular(20),

@@ -40,8 +40,8 @@ class _VerificationRejectedViewState extends State<VerificationRejectedView> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        onProfileTap: _logout,
-        profileImage: const AssetImage('assets/images/default_profile.png'),
+        onProfileTap:
+            _logout, // Uses new CustomAppBar without profileImage parameter
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

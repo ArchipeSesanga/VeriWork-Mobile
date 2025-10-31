@@ -106,7 +106,7 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.logOut();
+      await _authService.logout();
       // TODO: Navigate back to login screen after logout
     } catch (e) {
       showInSnackBar(

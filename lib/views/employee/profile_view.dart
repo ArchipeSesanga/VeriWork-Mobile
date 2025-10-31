@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
 import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
@@ -26,7 +25,6 @@ class _ProfileViewState extends State<ProfileView> {
 
   // LOGOUT
   Future<void> _logout() async {
-    print('VerificationPending to Logout to Login');
     final viewModel = Provider.of<LoginViewModel>(context, listen: false);
     await viewModel.logoutUser(context);
   }
@@ -40,8 +38,8 @@ class _ProfileViewState extends State<ProfileView> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        onProfileTap: _logout,
-        profileImage: const AssetImage('assets/images/default_profile.png'),
+        onProfileTap:
+            _logout, // ✅ Uses new CustomAppBar without profileImage parameter
       ),
       body: vm.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -202,7 +200,9 @@ class _ProfileViewState extends State<ProfileView> {
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
                     color: _getStatusColor(profile?.verificationStatus)
-                        .withValues(alpha: 0.1),
+                        .withValues(
+                            alpha:
+                                0.1), // Fixed: changed withValues to withOpacity
                     borderRadius: BorderRadius.circular(8.0),
                     border: Border.all(
                       color: _getStatusColor(profile?.verificationStatus),

@@ -7,6 +7,7 @@ import 'package:veriwork_mobile/firebase_options.dart';
 import 'package:veriwork_mobile/core/utils/firebase.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/forgot_pass_viewmodel.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/auth_viewmodels/logout_viewmodel.dart';
 import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
 
 void main() async {
@@ -27,12 +28,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => ForgotPassViewModel()),
         ChangeNotifierProvider(create: (_) => DashboardViewModel()),
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'VeriWork',
         theme: AppTheme.lightTheme,
-
         onGenerateRoute: AppRoutes.routes,
         initialRoute: AppRoutes.onboarding,
         home: const _AuthGate(),
@@ -40,7 +41,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 
 class _AuthGate extends StatelessWidget {
   const _AuthGate();
@@ -56,13 +56,11 @@ class _AuthGate extends StatelessWidget {
           );
         }
 
-        
-        if (snapshot.hasData) {  
+        if (snapshot.hasData) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
           });
         } else {
-          
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.of(context).pushReplacementNamed(AppRoutes.login);
           });

@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,119 +8,148 @@ class SelfieService {
   // Azure Cognitive Services Face API
   static const String _baseUrl =
       "https://veriworkface.cognitiveservices.azure.com";
-
-  // Your Azure subscription key
   static const String _subscriptionKey =
       "7YpvVuEXRisLzkGgCITn45Zqs5LawczwLgpGve5F7ofr2Y1pc7B1JQQJ99BJACYeBjFXJ3w3AAAKACOGT5yC";
-  static const String _region = "eastus";
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<Map<String, dynamic>> uploadSelfie(File selfieFile) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = _auth.currentUser;
       if (user == null) throw Exception('User not logged in');
 
-      // Face Detection endpoint - detects if there's a face in the image
-      final uri =
-          Uri.parse("$_baseUrl/face/v1.0/detect").replace(queryParameters: {
-        'returnFaceId': 'true',
-        'returnFaceLandmarks': 'false',
-        'returnFaceAttributes': 'age,gender,glasses,emotion',
-        'recognitionModel': 'recognition_04', // Latest model
-        'detectionModel': 'detection_03',
-      });
+      // Step 1: Detect face in the selfie
+      final detectionResult = await _detectFace(selfieFile);
+      final detectedFaceId = detectionResult['faceId'];
 
-      // Read image as bytes for Azure API
-      final imageBytes = await selfieFile.readAsBytes();
+      // Step 2: Get employee's reference Face ID from Firestore
+      final employeeFaceId = await _getEmployeeFaceId(user.uid);
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'Ocp-Apim-Subscription-Key': _subscriptionKey,
-          'Content-Type': 'application/octet-stream',
-        },
-        body: imageBytes,
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-            'Azure Face API failed: ${response.statusCode} - ${response.body}');
+      if (employeeFaceId == null) {
+        // No reference photo - store this as reference for future
+        await _storeReferenceFaceId(user.uid, detectedFaceId);
+        return {
+          'success': true,
+          'faceDetected': true,
+          'verificationStatus': 'pending',
+          'message':
+              'First-time verification. Reference photo saved for future.',
+          'isFirstTime': true,
+        };
       }
 
-      final responseData = jsonDecode(response.body);
+      // Step 3: Compare selfie with employee reference photo
+      final verificationResult =
+          await _verifyFaces(detectedFaceId, employeeFaceId);
 
-      // Handle Azure Face API response (returns array of faces)
-      return _handleAzureResponse(responseData);
+      return {
+        'success': true,
+        'faceDetected': true,
+        'isIdentical': verificationResult['isIdentical'],
+        'confidence': verificationResult['confidence'],
+        'verificationStatus':
+            verificationResult['isIdentical'] ? 'verified' : 'rejected',
+        'message': verificationResult['isIdentical']
+            ? 'Identity verified successfully!'
+            : 'Face does not match employee records.',
+      };
     } catch (e) {
-      throw Exception('Selfie upload failed: $e');
+      throw Exception('Selfie verification failed: $e');
     }
   }
 
-  Map<String, dynamic> _handleAzureResponse(dynamic azureResponse) {
-    if (azureResponse is List) {
-      if (azureResponse.isEmpty) {
+  Future<Map<String, dynamic>> _detectFace(File selfieFile) async {
+    final uri =
+        Uri.parse("$_baseUrl/face/v1.0/detect").replace(queryParameters: {
+      'returnFaceId': 'true',
+      'returnFaceLandmarks': 'false',
+      'recognitionModel': 'recognition_04',
+      'detectionModel': 'detection_03',
+    });
+
+    final imageBytes = await selfieFile.readAsBytes();
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Ocp-Apim-Subscription-Key': _subscriptionKey,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: imageBytes,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Face detection failed: ${response.statusCode} - ${response.body}');
+    }
+
+    final responseData = jsonDecode(response.body);
+
+    if (responseData is List) {
+      if (responseData.isEmpty) {
         throw Exception(
             'No face detected in the image. Please ensure your face is clearly visible.');
-      } else if (azureResponse.length > 1) {
+      } else if (responseData.length > 1) {
         throw Exception(
             'Multiple faces detected. Please capture only your face in the selfie.');
       }
 
-      // Single face detected - success!
-      final faceData = azureResponse[0];
       return {
-        'success': true,
-        'faceId': faceData['faceId'],
-        'faceDetected': true,
-        'verificationStatus':
-            'pending', // Will verify against employee photo later
-        'faceAttributes': faceData['faceAttributes'],
-        'message': 'Face detected successfully!',
-        'confidence': 0.95, // High confidence for single face detection
+        'faceId': responseData[0]['faceId'],
+        'faceRectangle': responseData[0]['faceRectangle'],
       };
     }
 
     throw Exception('Unexpected response format from Azure Face API');
   }
 
-  // Optional: Method to verify against a reference face (if you have employee photos)
-  Future<Map<String, dynamic>> verifyAgainstReference(
-      String detectedFaceId, String referenceFaceId) async {
+  Future<String?> _getEmployeeFaceId(String userId) async {
     try {
-      final uri = Uri.parse("$_baseUrl/face/v1.0/verify");
-
-      final requestBody = jsonEncode({
-        'faceId1': detectedFaceId,
-        'faceId2': referenceFaceId,
-      });
-
-      final response = await http.post(
-        uri,
-        headers: {
-          'Ocp-Apim-Subscription-Key': _subscriptionKey,
-          'Content-Type': 'application/json',
-        },
-        body: requestBody,
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-            'Face verification failed: ${response.statusCode} - ${response.body}');
-      }
-
-      final verificationResult = jsonDecode(response.body);
-
-      return {
-        'success': true,
-        'isIdentical': verificationResult['isIdentical'],
-        'confidence': verificationResult['confidence'],
-        'verificationStatus':
-            verificationResult['isIdentical'] ? 'verified' : 'rejected',
-        'message': verificationResult['isIdentical']
-            ? 'Face verification successful!'
-            : 'Face does not match employee records.',
-      };
+      final doc = await _firestore.collection('Users').doc(userId).get();
+      return doc.data()?['azureFaceId'] as String?;
     } catch (e) {
-      throw Exception('Face verification error: $e');
+      print('Error getting employee Face ID: $e');
+      return null;
     }
+  }
+
+  Future<void> _storeReferenceFaceId(String userId, String faceId) async {
+    try {
+      await _firestore.collection('Users').doc(userId).update({
+        'azureFaceId': faceId,
+        'referencePhotoStored': true,
+        'lastVerificationUpdate': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error storing reference Face ID: $e');
+      throw Exception('Failed to save reference photo');
+    }
+  }
+
+  Future<Map<String, dynamic>> _verifyFaces(
+      String faceId1, String faceId2) async {
+    final uri = Uri.parse("$_baseUrl/face/v1.0/verify");
+
+    final requestBody = jsonEncode({
+      'faceId1': faceId1,
+      'faceId2': faceId2,
+    });
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Ocp-Apim-Subscription-Key': _subscriptionKey,
+        'Content-Type': 'application/json',
+      },
+      body: requestBody,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Face verification failed: ${response.statusCode} - ${response.body}');
+    }
+
+    return jsonDecode(response.body);
   }
 }

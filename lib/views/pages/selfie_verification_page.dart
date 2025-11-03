@@ -69,47 +69,45 @@ class _SelfiePageState extends State<SelfiePage> {
   Future<void> _submitSelfie() async {
     final selfieVm = Provider.of<SelfieViewModel>(context, listen: false);
 
-    if (_image == null && _webImageBytes == null) {
+    if (_image == null) {
       _showSnackBar("Please capture a selfie first", false);
       return;
     }
 
-    // For mobile: use the captured file
-    if (_image != null) {
-      selfieVm.setSelfieFile(_image!);
-    } else {
-      // For web: show message that web upload needs additional setup
-      _showSnackBar("Web selfie upload requires additional setup", false);
-      return;
-    }
+    selfieVm.setSelfieFile(_image!);
 
     try {
-      // Call Azure Face API
+      // This now does AUTOMATIC verification against Firestore reference
       final response = await selfieVm.uploadSelfie();
 
-      // Handle Azure API response
       final status = response['verificationStatus'] ?? 'pending';
-      final message = response['message'] ?? 'Selfie submitted successfully';
+      final message = response['message'] ?? 'Verification completed';
+      final isFirstTime = response['isFirstTime'] ?? false;
 
       if (mounted) {
         _showSnackBar(message, true);
         await Future.delayed(const Duration(milliseconds: 800));
 
-        // Navigate based on response
+        // Navigate based on AUTOMATIC verification result
         if (status == 'verified') {
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationSuccessful);
         } else if (status == 'rejected') {
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationRejected);
+        } else if (isFirstTime) {
+          // First time - reference photo saved
+          _showSnackBar(
+              "Reference photo saved! Next time will auto-verify.", true);
+          Navigator.pushReplacementNamed(
+              context, AppRoutes.verificationPending);
         } else {
-          // 'pending' or face detected but needs manual verification
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationPending);
         }
       }
     } catch (e) {
-      _showSnackBar("Submission failed: ${e.toString()}", false);
+      _showSnackBar("Verification failed: ${e.toString()}", false);
     }
   }
 

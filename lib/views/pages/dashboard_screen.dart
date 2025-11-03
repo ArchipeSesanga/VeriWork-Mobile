@@ -180,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Text(
                               profile?.verificationStatus ?? 'Pending',
                               style: TextStyle(
-                                color: Colors.orange,
+                                color: const Color.fromARGB(255, 0, 255, 34),
                                 fontSize: 12 * textScale,
                                 fontWeight: FontWeight.w600,
                               ),

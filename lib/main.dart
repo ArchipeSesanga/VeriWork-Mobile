@@ -36,14 +36,13 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         onGenerateRoute: AppRoutes.routes,
         initialRoute: AppRoutes.onboarding,
-        home: const _AuthGate(),
+     
       ),
     );
   }
 }
 
-class _AuthGate extends StatelessWidget {
-  const _AuthGate();
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -70,4 +69,3 @@ class _AuthGate extends StatelessWidget {
       },
     );
   }
-}

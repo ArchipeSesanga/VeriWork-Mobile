@@ -113,8 +113,7 @@ class _SelfiePageState extends State<SelfiePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        onProfileTap:
-            _logout, // ✅ Uses new CustomAppBar without profileImage parameter
+        onProfileTap: _logout, //  Uses new CustomAppBar without profileImage parameter
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),

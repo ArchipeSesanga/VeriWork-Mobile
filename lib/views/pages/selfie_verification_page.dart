@@ -20,23 +20,35 @@ class SelfiePage extends StatefulWidget {
 
 class _SelfiePageState extends State<SelfiePage> {
   File? _image;
-  final bool _isLoading = false;
+  bool _isLoading = false;
   bool _isCapturing = false;
   final ImagePicker _picker = ImagePicker();
   Uint8List? _webImageBytes;
 
   // LOGOUT — uses LoginViewModel
   Future<void> _logout() async {
-    print('VerificationPending to Logout to Login');
+    print('🚨🚨🚨 LOGOUT CALLED - Starting logout process 🚨🚨🚨');
+    print('📱 Stack trace for debugging:');
+    print(StackTrace.current);
+
     final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    print('🔐 LoginViewModel obtained, calling logoutUser...');
     await viewModel.logoutUser(context);
+    print('✅ Logout completed successfully');
   }
 
   Future<void> _pickImage() async {
-    if (_isCapturing) return;
+    print('📸 _pickImage called - isCapturing: $_isCapturing');
+    if (_isCapturing) {
+      print('⏳ Already capturing, returning early');
+      return;
+    }
+
     setState(() => _isCapturing = true);
+    print('🔄 Set _isCapturing to true');
 
     try {
+      print('🎯 Opening camera with ImagePicker...');
       final pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.front,
@@ -45,73 +57,126 @@ class _SelfiePageState extends State<SelfiePage> {
         maxHeight: 1024,
       );
 
+      print(
+          '📷 Camera returned - pickedFile: ${pickedFile != null ? "EXISTS" : "NULL"}');
+      print('📱 Mounted status: $mounted');
+
       if (pickedFile != null && mounted) {
         if (kIsWeb) {
+          print('🌐 Web platform - reading image as bytes');
           final bytes = await pickedFile.readAsBytes();
           setState(() {
             _webImageBytes = bytes;
           });
+          print('✅ Web image bytes set - length: ${bytes.length}');
         } else {
+          print('📱 Mobile platform - creating File object');
           setState(() {
             _image = File(pickedFile.path);
           });
+          print('✅ Mobile image file set - path: ${pickedFile.path}');
         }
+      } else {
+        print('❌ No image selected or widget not mounted');
       }
-    } catch (_) {
+    } catch (e) {
+      print('❌ ERROR in _pickImage: $e');
       if (mounted) {
         _showSnackBar("Failed to capture selfie. Please try again.", false);
       }
     } finally {
-      if (mounted) setState(() => _isCapturing = false);
+      if (mounted) {
+        setState(() => _isCapturing = false);
+        print('🔄 Set _isCapturing to false');
+      } else {
+        print('⚠️ Widget not mounted, skipping setState');
+      }
     }
   }
 
   Future<void> _submitSelfie() async {
-    final selfieVm = Provider.of<SelfieViewModel>(context, listen: false);
+    print('📤 _submitSelfie called - _isLoading: $_isLoading');
 
-    if (_image == null) {
+    // Check if image exists
+    if (_image == null && _webImageBytes == null) {
+      print('❌ No image available for submission');
       _showSnackBar("Please capture a selfie first", false);
       return;
     }
 
-    selfieVm.setSelfieFile(_image!);
+    print('🔄 Setting _isLoading to true');
+    setState(() => _isLoading = true);
 
     try {
-      // This now does AUTOMATIC verification against Firestore reference
+      print('🔍 Getting SelfieViewModel from Provider');
+      final selfieVm = Provider.of<SelfieViewModel>(context, listen: false);
+
+      if (_image != null) {
+        print('📁 Setting selfie file in ViewModel');
+        selfieVm.setSelfieFile(_image!);
+      } else if (_webImageBytes != null) {
+        print(
+            '🌐 Web image bytes available (length: ${_webImageBytes!.length})');
+      }
+
+      print('🚀 Calling uploadSelfie()...');
       final response = await selfieVm.uploadSelfie();
+      print('✅ uploadSelfie completed - response: $response');
 
       final status = response['verificationStatus'] ?? 'pending';
       final message = response['message'] ?? 'Verification completed';
       final isFirstTime = response['isFirstTime'] ?? false;
 
+      print('📊 Verification Status: $status');
+      print('📝 Message: $message');
+      print('🆕 Is First Time: $isFirstTime');
+      print('📱 Mounted status: $mounted');
+
       if (mounted) {
         _showSnackBar(message, true);
+        print('⏳ Waiting 800ms before navigation...');
         await Future.delayed(const Duration(milliseconds: 800));
 
+        print('🧭 Navigating based on verification result...');
         // Navigate based on AUTOMATIC verification result
         if (status == 'verified') {
+          print('✅ Verified - navigating to verificationSuccessful');
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationSuccessful);
         } else if (status == 'rejected') {
+          print('❌ Rejected - navigating to verificationRejected');
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationRejected);
         } else if (isFirstTime) {
           // First time - reference photo saved
+          print('🆕 First time - reference photo saved');
           _showSnackBar(
               "Reference photo saved! Next time will auto-verify.", true);
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationPending);
         } else {
+          print('⏳ Pending - navigating to verificationPending');
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationPending);
         }
+      } else {
+        print('⚠️ Widget not mounted, skipping navigation');
       }
     } catch (e) {
+      print('❌ ERROR in _submitSelfie: $e');
       _showSnackBar("Verification failed: ${e.toString()}", false);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        print('🔄 Set _isLoading to false');
+      } else {
+        print('⚠️ Widget not mounted, skipping setState');
+      }
     }
   }
 
   void _showSnackBar(String message, bool success) {
+    print('🍫 Showing SnackBar - Success: $success, Message: $message');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -131,11 +196,14 @@ class _SelfiePageState extends State<SelfiePage> {
 
   @override
   Widget build(BuildContext context) {
+    print('🏗️ Building SelfiePage UI');
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        onProfileTap:
-            _logout, //  Uses new CustomAppBar without profileImage parameter
+        onProfileTap: () {
+          print('👤 CustomAppBar onProfileTap triggered!');
+          _logout();
+        },
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -216,7 +284,10 @@ class _SelfiePageState extends State<SelfiePage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitSelfie,
+                onPressed:
+                    (_image != null || _webImageBytes != null) && !_isLoading
+                        ? _submitSelfie
+                        : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade700,
                   foregroundColor: Colors.white,
@@ -245,14 +316,17 @@ class _SelfiePageState extends State<SelfiePage> {
         ),
       ),
       bottomNavigationBar: CustomBottomNav(
-        currentIndex: 0, // Keep Home highlighted (or -1 for none)
+        currentIndex: 0,
         onTap: (index) {
+          print('🔘 BottomNav tapped - index: $index');
           if (index == 0) {
+            print('🏠 Navigating to DashboardScreen');
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const DashboardScreen()),
             );
           } else if (index == 1) {
+            print('👤 Navigating to ProfileView');
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const ProfileView()),

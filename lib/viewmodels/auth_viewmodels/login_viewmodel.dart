@@ -21,7 +21,7 @@ class LoginViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
 
   // ─────────────────────────────────────────────
-  // 🔹 SETTERS
+  //  SETTERS
   // ─────────────────────────────────────────────
   void setEmail(String? email) {
     _email = email;
@@ -79,7 +79,7 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       final success = await _authService.loginUser(
-        email: _email!.trim(), // ✅ Safe unwrapping
+        email: _email!.trim(), //  Safe unwrapping
         password: _password!.trim(),
       );
 

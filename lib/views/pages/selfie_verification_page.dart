@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/core/constants/routes.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
+import 'package:veriwork_mobile/viewmodels/selfie_viewmodel.dart';
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
@@ -19,7 +20,7 @@ class SelfiePage extends StatefulWidget {
 
 class _SelfiePageState extends State<SelfiePage> {
   File? _image;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _isCapturing = false;
   final ImagePicker _picker = ImagePicker();
   Uint8List? _webImageBytes;
@@ -66,27 +67,49 @@ class _SelfiePageState extends State<SelfiePage> {
   }
 
   Future<void> _submitSelfie() async {
+    final selfieVm = Provider.of<SelfieViewModel>(context, listen: false);
+
     if (_image == null && _webImageBytes == null) {
       _showSnackBar("Please capture a selfie first", false);
       return;
     }
 
-    setState(() => _isLoading = true);
+    // For mobile: use the captured file
+    if (_image != null) {
+      selfieVm.setSelfieFile(_image!);
+    } else {
+      // For web: show message that web upload needs additional setup
+      _showSnackBar("Web selfie upload requires additional setup", false);
+      return;
+    }
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      // Call Azure Face API
+      final response = await selfieVm.uploadSelfie();
+
+      // Handle Azure API response
+      final status = response['verificationStatus'] ?? 'pending';
+      final message = response['message'] ?? 'Selfie submitted successfully';
+
       if (mounted) {
-        _showSnackBar("Selfie submitted successfully!", true);
+        _showSnackBar(message, true);
         await Future.delayed(const Duration(milliseconds: 800));
-        if (mounted) {
+
+        // Navigate based on response
+        if (status == 'verified') {
+          Navigator.pushReplacementNamed(
+              context, AppRoutes.verificationSuccessful);
+        } else if (status == 'rejected') {
+          Navigator.pushReplacementNamed(
+              context, AppRoutes.verificationRejected);
+        } else {
+          // 'pending' or face detected but needs manual verification
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationPending);
         }
       }
-    } catch (_) {
-      _showSnackBar("Submission failed. Please try again.", false);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      _showSnackBar("Submission failed: ${e.toString()}", false);
     }
   }
 
@@ -114,7 +137,7 @@ class _SelfiePageState extends State<SelfiePage> {
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         onProfileTap:
-            _logout, // ✅ Uses new CustomAppBar without profileImage parameter
+            _logout, //  Uses new CustomAppBar without profileImage parameter
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),

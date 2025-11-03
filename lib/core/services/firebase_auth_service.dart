@@ -4,7 +4,7 @@ class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   // ─────────────────────────────────────────────
-  // 🔹 LOGIN USER
+  //  LOGIN USER
   // ─────────────────────────────────────────────
   Future<bool> loginUser({
     required String email,
@@ -24,7 +24,7 @@ class AuthService {
   }
 
   // ─────────────────────────────────────────────
-  // 🔹 LOGOUT USER
+  //  LOGOUT USER
   // ─────────────────────────────────────────────
   // In your AuthService
   Future<void> logout() async {
@@ -32,7 +32,7 @@ class AuthService {
   }
 
   // ─────────────────────────────────────────────
-  // 🔹 HELPER: HANDLE ERRORS
+  //  HELPER: HANDLE ERRORS
   // ─────────────────────────────────────────────
   String handleFirebaseAuthError(String code) {
     switch (code) {

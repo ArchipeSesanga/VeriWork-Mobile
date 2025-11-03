@@ -13,7 +13,7 @@ class ForgotPassViewModel extends ChangeNotifier {
   final FocusNode emailFN = FocusNode();
 
   // ─────────────────────────────────────────────
-  // 🔹 RESET INPUT
+  //  RESET INPUT
   // ─────────────────────────────────────────────
   void resetValues() {
     email = null;

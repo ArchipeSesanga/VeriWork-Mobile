@@ -7,6 +7,7 @@ import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
 import 'package:veriwork_mobile/views/employee/profile_view.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
+import '../../core/constants/app_colours.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -180,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Text(
                               profile?.verificationStatus ?? 'Pending',
                               style: TextStyle(
-                                color: const Color.fromARGB(255, 0, 255, 34),
+                                color: AppColors.pending,
                                 fontSize: 12 * textScale,
                                 fontWeight: FontWeight.w600,
                               ),

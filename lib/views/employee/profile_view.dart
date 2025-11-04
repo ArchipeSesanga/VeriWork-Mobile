@@ -5,6 +5,7 @@ import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
+import '../../core/constants/app_colours.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -263,12 +264,12 @@ class _ProfileViewState extends State<ProfileView> {
   Color _getStatusColor(String? status) {
     switch (status?.toLowerCase()) {
       case 'verified':
-        return Colors.green;
+        return AppColors.success;
       case 'rejected':
-        return Colors.red;
+        return AppColors.error;
       case 'pending':
       default:
-        return Colors.orange;
+        return AppColors.pending;
     }
   }
 

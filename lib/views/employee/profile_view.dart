@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:veriwork_mobile/viewmodels/auth_viewmodels/login_viewmodel.dart';
@@ -5,7 +7,6 @@ import 'package:veriwork_mobile/viewmodels/dashboard_viewmodel.dart';
 import 'package:veriwork_mobile/views/pages/dashboard_screen.dart';
 import 'package:veriwork_mobile/widgets/custom_appbar.dart';
 import 'package:veriwork_mobile/widgets/custom_bottom_nav.dart';
-import '../../core/constants/app_colours.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -30,6 +31,53 @@ class _ProfileViewState extends State<ProfileView> {
     await viewModel.logoutUser(context);
   }
 
+  // Helper method to get status details based on verification status
+  Map<String, dynamic> _getStatusDetails(String? verificationStatus) {
+    switch (verificationStatus?.toLowerCase()) {
+      case 'verified':
+      case 'approved':
+        return {
+          'text': 'Active Employee',
+          'color': Color(0xFF4CAF50),
+          'backgroundColor': Color(0xFFE8F5E8),
+          'borderColor': Color(0xFF4CAF50),
+          'icon': Icons.verified_outlined,
+        };
+      case 'rejected':
+      case 'denied':
+        return {
+          'text': 'Verification Rejected',
+          'color': Color(0xFFF44336),
+          'backgroundColor': Color(0xFFFFEBEE),
+          'borderColor': Color(0xFFF44336),
+          'icon': Icons.error_outline,
+        };
+      case 'pending':
+      default:
+        return {
+          'text': 'Pending Verification',
+          'color': Color(0xFFFF9800),
+          'backgroundColor': Color(0xFFFFF3E0),
+          'borderColor': Color(0xFFFF9800),
+          'icon': Icons.pending_outlined,
+        };
+    }
+  }
+
+  String _getStatusMessage(String? verificationStatus) {
+    switch (verificationStatus?.toLowerCase()) {
+      case 'verified':
+      case 'approved':
+        return 'Your identity has been successfully verified. You now have full access to all employee features.';
+      case 'rejected':
+      case 'denied':
+        return 'Your verification was rejected. Please capture a new selfie and try again, or contact support for assistance.';
+      case 'pending':
+      default:
+        return 'Please capture a selfie for identity verification to complete your profile setup and activate your account.';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<DashboardViewModel>(context);
@@ -37,203 +85,144 @@ class _ProfileViewState extends State<ProfileView> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
 
+    final statusDetails = _getStatusDetails(profile?.verificationStatus);
+
     return Scaffold(
       appBar: CustomAppBar(
-        onProfileTap:
-            _logout, // ✅ Uses new CustomAppBar without profileImage parameter
+        onProfileTap: _logout,
       ),
       body: vm.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: EdgeInsets.all(isTablet ? 32.0 : 16.0),
+              padding: EdgeInsets.all(isTablet ? 24.0 : 16.0),
               children: [
-                const Text(
-                  'Profile Information',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 24.0),
-
-                // Profile Header
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.yellow[50],
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: isTablet ? 50 : 40,
-                          backgroundImage: profile?.imageUrl != null &&
-                                  profile!.imageUrl!.isNotEmpty
-                              ? NetworkImage(profile.imageUrl!) as ImageProvider
-                              : const AssetImage('assets/profile.jpg'),
-                          onBackgroundImageError: (_, __) {},
-                        ),
-                        const SizedBox(width: 16.0),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${profile?.name ?? ''} ${profile?.surname ?? ''}',
-                              style: TextStyle(
-                                fontSize: isTablet ? 28 : 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              profile?.employeeId ?? profile?.uid ?? '',
-                              style: TextStyle(
-                                fontSize: isTablet ? 16 : 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
+                // Profile Header Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.blue.shade50,
+                        Colors.blue.shade100,
                       ],
                     ),
-                  ),
-                ),
-
-                const SizedBox(height: 32.0),
-
-                // Personal Information Section
-                const Text(
-                  'Personal Information',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16.0),
-
-                _buildInfoField(
-                  label: 'Full Name',
-                  value: '${profile?.name ?? ''} ${profile?.surname ?? ''}',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Employee ID',
-                  value: profile?.employeeId ?? profile?.uid ?? '',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Position',
-                  value: profile?.position ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Department',
-                  value: profile?.departmentId ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Email Address',
-                  value: profile?.email ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Phone Number',
-                  value: profile?.phone ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Role',
-                  value: profile?.role ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-
-                const SizedBox(height: 24.0),
-
-                // Contact Information Section
-                const Text(
-                  'Contact Information',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16.0),
-
-                _buildInfoField(
-                  label: 'Address',
-                  value: profile?.address ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'City',
-                  value: profile?.city ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Country',
-                  value: profile?.country ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-
-                const SizedBox(height: 24.0),
-
-                // Emergency Contact Section
-                const Text(
-                  'Emergency Contact',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16.0),
-
-                _buildInfoField(
-                  label: 'Emergency Contact Name',
-                  value: profile?.emergencyName ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-                _buildInfoField(
-                  label: 'Emergency Contact Phone',
-                  value: profile?.emergencyPhone ?? 'Not specified',
-                  isTablet: isTablet,
-                ),
-
-                const SizedBox(height: 32.0),
-
-                // Verification Status
-                const Text(
-                  'Verification Status',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16.0),
-
-                Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(profile?.verificationStatus)
-                        .withValues(
-                            alpha:
-                                0.1), // Fixed: changed withValues to withOpacity
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(
-                      color: _getStatusColor(profile?.verificationStatus),
-                      width: 1,
-                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.shade100,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        _getStatusIcon(profile?.verificationStatus),
-                        color: _getStatusColor(profile?.verificationStatus),
+                      // Profile Avatar with Status Badge
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            width: isTablet ? 100 : 80,
+                            height: isTablet ? 100 : 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              backgroundColor: Colors.blue.shade100,
+                              backgroundImage: profile?.imageUrl != null &&
+                                      profile!.imageUrl!.isNotEmpty
+                                  ? NetworkImage(profile.imageUrl!)
+                                  : const AssetImage('assets/profile.jpg')
+                                      as ImageProvider,
+                            ),
+                          ),
+                          // Dynamic Status Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusDetails['backgroundColor'],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: statusDetails['borderColor'],
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  statusDetails['icon'],
+                                  color: statusDetails['color'],
+                                  size: isTablet ? 10 : 8,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  statusDetails['text']
+                                      .toString()
+                                      .toUpperCase(),
+                                  style: TextStyle(
+                                    color: statusDetails['color'],
+                                    fontSize: isTablet ? 8 : 6,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12.0),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Verification Status',
+                              '${profile?.name ?? ''} ${profile?.surname ?? ''}',
                               style: TextStyle(
-                                fontSize: isTablet ? 16 : 14,
+                                fontSize: isTablet ? 22 : 18,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
                               ),
                             ),
+                            const SizedBox(height: 4),
                             Text(
-                              profile?.verificationStatus ?? 'Pending',
+                              profile?.employeeId ?? profile?.uid ?? '',
                               style: TextStyle(
                                 fontSize: isTablet ? 14 : 12,
-                                color: _getStatusColor(
-                                    profile?.verificationStatus),
+                                color: Colors.blue.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              profile?.position ?? 'Not specified',
+                              style: TextStyle(
+                                fontSize: isTablet ? 14 : 12,
+                                color: Colors.grey.shade700,
                               ),
                             ),
                           ],
@@ -243,7 +232,208 @@ class _ProfileViewState extends State<ProfileView> {
                   ),
                 ),
 
-                const SizedBox(height: 40.0),
+                const SizedBox(height: 24),
+
+                // Personal Information Section
+                _buildSection(
+                  title: 'Personal Information',
+                  icon: Icons.person_outline,
+                  children: [
+                    _buildInfoCard(
+                      icon: Icons.badge_outlined,
+                      label: 'Employee ID',
+                      value: profile?.employeeId ?? profile?.uid ?? '',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.work_outline,
+                      label: 'Position',
+                      value: profile?.position ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.business_outlined,
+                      label: 'Department',
+                      value: profile?.departmentId ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.email_outlined,
+                      label: 'Email Address',
+                      value: profile?.email ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.phone_outlined,
+                      label: 'Phone Number',
+                      value: profile?.phone ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.people_outline,
+                      label: 'Role',
+                      value: profile?.role ?? 'Not specified',
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Contact Information Section
+                _buildSection(
+                  title: 'Contact Information',
+                  icon: Icons.contact_mail_outlined,
+                  children: [
+                    _buildInfoCard(
+                      icon: Icons.location_on_outlined,
+                      label: 'Address',
+                      value: profile?.address ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.location_city_outlined,
+                      label: 'City',
+                      value: profile?.city ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.public_outlined,
+                      label: 'Country',
+                      value: profile?.country ?? 'Not specified',
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Emergency Contact Section
+                _buildSection(
+                  title: 'Emergency Contact',
+                  icon: Icons.emergency_outlined,
+                  children: [
+                    _buildInfoCard(
+                      icon: Icons.person_outline,
+                      label: 'Emergency Contact Name',
+                      value: profile?.emergencyName ?? 'Not specified',
+                    ),
+                    _buildInfoCard(
+                      icon: Icons.phone_outlined,
+                      label: 'Emergency Contact Phone',
+                      value: profile?.emergencyPhone ?? 'Not specified',
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Verification Status Section
+                _buildSection(
+                  title: 'Verification Status',
+                  icon: Icons.verified_outlined,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: statusDetails['backgroundColor'],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: statusDetails['borderColor'],
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      statusDetails['color'].withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: statusDetails['color'],
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      statusDetails['icon'],
+                                      color: statusDetails['color'],
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      profile?.verificationStatus
+                                              ?.toUpperCase() ??
+                                          'PENDING',
+                                      style: TextStyle(
+                                        color: statusDetails['color'],
+                                        fontSize: isTablet ? 12 : 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(
+                                statusDetails['icon'],
+                                color: statusDetails['color'],
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _getStatusMessage(profile?.verificationStatus),
+                            style: TextStyle(
+                              fontSize: isTablet ? 14 : 12,
+                              color: Colors.grey.shade700,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 32),
+
+                // Action Button - Only show if not verified/approved
+                if (profile?.verificationStatus?.toLowerCase() != 'verified' &&
+                    profile?.verificationStatus?.toLowerCase() != 'approved')
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/selfie', // Update with your selfie route
+                      ),
+                      icon: const Icon(Icons.camera_alt_outlined, size: 20),
+                      label: Text(
+                        'Capture Verification Selfie',
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1976D2),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(
+                            color: Color(0xFF1976D2),
+                            width: 2,
+                          ),
+                        ),
+                        elevation: 1,
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 40),
               ],
             ),
       bottomNavigationBar: CustomBottomNav(
@@ -260,67 +450,84 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  // Helper method for status color
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'verified':
-        return AppColors.success;
-      case 'rejected':
-        return AppColors.error;
-      case 'pending':
-      default:
-        return AppColors.pending;
-    }
-  }
-
-  // Helper method for status icon
-  IconData _getStatusIcon(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'verified':
-        return Icons.verified;
-      case 'rejected':
-        return Icons.cancel;
-      case 'pending':
-      default:
-        return Icons.pending;
-    }
-  }
-
-  // Read-only information field widget
-  Widget _buildInfoField({
-    required String label,
-    required String value,
-    required bool isTablet,
+  Widget _buildSection({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTablet ? 16 : 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              color: Colors.blue.shade700,
+              size: 20,
             ),
-          ),
-          const SizedBox(height: 4.0),
-          Container(
-            width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8.0),
-              color: Colors.grey[50],
-            ),
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: isTablet ? 16 : 14,
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade200,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: Colors.blue.shade600,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

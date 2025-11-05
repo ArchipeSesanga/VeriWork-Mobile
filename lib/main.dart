@@ -36,36 +36,33 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         onGenerateRoute: AppRoutes.routes,
         initialRoute: AppRoutes.onboarding,
-     
       ),
     );
   }
 }
 
- 
+@override
+Widget build(BuildContext context) {
+  return StreamBuilder(
+    stream: firebaseAuth.authStateChanges(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
 
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: firebaseAuth.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+      if (snapshot.hasData) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+        });
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+        });
+      }
 
-        if (snapshot.hasData) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
-          });
-        } else {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-          });
-        }
-
-        return const Scaffold(body: SizedBox.shrink());
-      },
-    );
-  }
+      return const Scaffold(body: SizedBox.shrink());
+    },
+  );
+}

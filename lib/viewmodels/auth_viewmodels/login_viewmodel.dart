@@ -64,7 +64,7 @@ class LoginViewModel extends ChangeNotifier {
       return;
     }
 
-    // 🔹 Check for null values
+    //  Check for null values
     if (_email == null || _password == null) {
       showInSnackBar(
         'Please enter both email and password.',

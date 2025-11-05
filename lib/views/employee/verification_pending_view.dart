@@ -35,7 +35,7 @@ class _VerificationPendingViewState extends State<VerificationPendingView> {
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         onProfileTap:
-            _logout, // ✅ Uses new CustomAppBar without profileImage parameter
+            _logout, //  Uses new CustomAppBar without profileImage parameter
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

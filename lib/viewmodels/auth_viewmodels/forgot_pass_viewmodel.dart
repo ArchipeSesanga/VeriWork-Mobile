@@ -20,7 +20,7 @@ class ForgotPassViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  // 🔹 HANDLE FORGOT PASSWORD (Admin Controlled)
+  //  HANDLE FORGOT PASSWORD (Admin Controlled)
   // ─────────────────────────────────────────────
   Future<void> forgotPassword(BuildContext context) async {
     loading = true;
@@ -54,7 +54,7 @@ class ForgotPassViewModel extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────
-  // 🔹 SET EMAIL
+  //  SET EMAIL
   // ─────────────────────────────────────────────
   void setEmail(String? val) {
     email = val;

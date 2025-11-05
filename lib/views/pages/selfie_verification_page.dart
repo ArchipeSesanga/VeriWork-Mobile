@@ -108,7 +108,7 @@ class _SelfiePageState extends State<SelfiePage> {
 
       String userId = user.uid;
       String fileName =
-          'verification_selfie_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          'selfie_latest.jpg';
       String filePath = 'users/$userId/verification_selfies/$fileName';
 
       Reference storageRef = _storage.ref().child(filePath);

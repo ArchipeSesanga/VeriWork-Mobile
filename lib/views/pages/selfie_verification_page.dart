@@ -1,3 +1,4 @@
+// lib/views/pages/selfie_verification_page.dart
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -107,8 +108,7 @@ class _SelfiePageState extends State<SelfiePage> {
       }
 
       String userId = user.uid;
-      String fileName =
-          'selfie_latest.jpg';
+      String fileName = 'selfie_latest.jpg';
       String filePath = 'users/$userId/verification_selfies/$fileName';
 
       Reference storageRef = _storage.ref().child(filePath);
@@ -186,7 +186,7 @@ class _SelfiePageState extends State<SelfiePage> {
 
         // Navigate based on comparison result
         if (comparisonResult['status'] == 'verified') {
-          _showSnackBar("Identity verified! ✅", true);
+          _showSnackBar("Identity verified!", true);
           Navigator.pushReplacementNamed(
               context, AppRoutes.verificationSuccessful);
         } else if (comparisonResult['status'] == 'rejected') {
@@ -297,13 +297,14 @@ class _SelfiePageState extends State<SelfiePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true, // Prevents keyboard overflow
       appBar: CustomAppBar(
         onProfileTap: _logout,
       ),
-      body: Padding(
+      body: SingleChildScrollView( // SCROLLABLE CONTENT
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min, // Prevents Column from expanding
           children: [
             const Text(
               "Identity Verification",
@@ -491,7 +492,7 @@ class _SelfiePageState extends State<SelfiePage> {
               child: Column(
                 children: [
                   Text(
-                    "🔍 Comparing with Profile Photo",
+                    "Comparing with Profile Photo",
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade800,
@@ -512,6 +513,8 @@ class _SelfiePageState extends State<SelfiePage> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 100), // SAFE SPACE FOR BOTTOM NAV
           ],
         ),
       ),

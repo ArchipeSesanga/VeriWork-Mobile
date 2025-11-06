@@ -114,82 +114,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           children: [
                             // Profile Avatar with Status Badge
-                            Stack(
-                              alignment: Alignment.bottomRight,
-                              children: [
-                                Container(
-                                  width: isTablet ? 120 : 100,
-                                  height: isTablet ? 120 : 100,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 4,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            Colors.black.withValues(alpha: 0.1),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
+                            Center(
+                              child: Stack(
+                                alignment: Alignment
+                                    .bottomRight, // keep badge bottom-right
+                                children: [
+                                  Container(
+                                    width: isTablet ? 120 : 100,
+                                    height: isTablet ? 120 : 100,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 4,
                                       ),
-                                    ],
-                                  ),
-                                  child: CircleAvatar(
-                                    backgroundColor: Colors.blue.shade100,
-                                    backgroundImage: profile?.imageUrl !=
-                                                null &&
-                                            profile!.imageUrl!.isNotEmpty
-                                        ? NetworkImage(profile.imageUrl!)
-                                        : const AssetImage('assets/profile.jpg')
-                                            as ImageProvider,
-                                  ),
-                                ),
-                                // Dynamic Status Badge
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: statusDetails['backgroundColor'],
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: statusDetails['borderColor'],
-                                      width: 2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            Colors.black.withValues(alpha: .1),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        statusDetails['icon'],
-                                        color: statusDetails['color'],
-                                        size: isTablet ? 12 : 10,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        statusDetails['text']
-                                            .toString()
-                                            .toUpperCase(),
-                                        style: TextStyle(
-                                          color: statusDetails['color'],
-                                          fontSize: isTablet ? 10 : 8,
-                                          fontWeight: FontWeight.bold,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.blue.shade100,
+                                      backgroundImage:
+                                          profile?.imageUrl != null &&
+                                                  profile!.imageUrl!.isNotEmpty
+                                              ? NetworkImage(profile.imageUrl!)
+                                              : const AssetImage(
+                                                      'assets/profile.jpg')
+                                                  as ImageProvider,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  // Status Badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: statusDetails['backgroundColor'],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: statusDetails['borderColor'],
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withValues(alpha: .1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          statusDetails['icon'],
+                                          color: statusDetails['color'],
+                                          size: isTablet ? 12 : 10,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          statusDetails['text']
+                                              .toString()
+                                              .toUpperCase(),
+                                          style: TextStyle(
+                                            color: statusDetails['color'],
+                                            fontSize: isTablet ? 10 : 8,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
 
                             const SizedBox(height: 16),
